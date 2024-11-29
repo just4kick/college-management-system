@@ -1,0 +1,47 @@
+
+---
+
+### **.gitignore**  
+
+```plaintext
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+env/
+
+# IDE and Editor files
+*.vscode/
+*.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Python cache and test outputs
+*.pytest_cache/
+*.coverage
+coverage.xml
+htmlcov/
+
+# Flask/Environment
+instance/
+.env
+*.sqlite3
+
+# Build files
+*.egg-info/
+build/
+dist/
+
+# Temporary files
+*.bak
+*.swp
+*.tmp
+*.orig
