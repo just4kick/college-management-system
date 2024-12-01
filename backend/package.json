@@ -6,10 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start-python": "python python-model/face_verification.py",
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
-    "start-python": "python3 python-model/face_verification.py",
-    "dev-all": "concurrently \"npm run start-python\" \"npm run dev\"",
-    "start": "node src/index.js"
+    "dev-python": "start cmd /K \"npm run start-python\"",
+    "dev-server": "start cmd /K \"npm run dev\"",
+    "dev-all": "npm run dev-python && npm run dev-server",
+    "postinstall": "chmod +x src/python-model/start-python.sh && ./src/python-model/start-python.sh"
   },
   "author": "cdAkash",
   "license": "ISC",

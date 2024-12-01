@@ -6,12 +6,10 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import{generateOtp,
     verifyOtp} from "../services/otp.service.js"
-import{generateFaceEncoding,
-    verifyFaceEncoding,
-    verifyAndRespond,} from "../services/faceRecognition.service.js"
+import{verifyAndRespond,generateFaceEncoding} from "../services/faceRecognition.service.js"
 import {Admin} from "../models/admin.models.js"
 import {Faculty} from "../models/faculty.models.js"
-import {Student} from "../models/student.models.js"
+import {Student} from "../models/student.models.js";
 import fs from "fs"
 import axios from "axios"
 import FormData from 'form-data';
@@ -129,7 +127,8 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid role. Must be 'Admin', 'Student', or 'Faculty'");
     }
 
-    const user = await userRole.findOne({email})
+    const user = await userRole.findOne({email}).select("-password -refreshToken -faceEmbedding")
+    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     const cameraLocalPath = req.file?.path
     if(!cameraLocalPath){
         throw new ApiError(400,"Camera Image is required")
@@ -137,39 +136,29 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
     const faceEmbeddings = user.faceEmbedding;
     console.log(faceEmbeddings)
 
-    //verifying the face encodings from database and the from the frontend
-    try{
-        const formData = new FormData();
-        formData.append('image',fs.createReadStream(cameraLocalPath));
-        formData.append('referenceEncoding',JSON.stringify(faceEmbeddings))
-        formData.append('threshold','0.7');
-        // console.log(formData)
-        const pythonApiUrl = "http://127.0.0.1:5000/api/verify-encoding";
-        const response = await axios.post(pythonApiUrl,formData,{
-            headers:{
-                ...formData.getHeaders(),
-            },
-        })
-        const {isMatch,distance}=response.data
-
-        if(isMatch){
+        if(verifyAndRespond(cameraLocalPath,faceEmbeddings)){
             return res
             .status(200)
+            .cookie("accessToken",accessToken,options)
+            .cookie("refreshToken",refreshToken,options)
             .json(
-                new ApiResponse(200,{distance},"Face recognized succesfully.")
+                new ApiResponse(200,user,"Face recognized succesfully.")
             )
         }else{
             throw new ApiError(401,"Face does not match. Bhaag yha se")
         }
-    }catch(error){
-        throw new ApiError(500,`Face recognition failed: ${error.response?.data?.error || error.message}`)
-    }
 });
 
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     // TODO: Implement changePassword
     const {oldPassword,newPassword}=req.body
-    const user = req.user
+
+    const userRole = req.user?.role
+    const model = roleModelMap[userRole]
+    if(!model){
+        throw new ApiError(400,"Invalid role")
+    }
+    const user = await model.findById(req.user?._id)
 
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
     if(!isPasswordCorrect){
@@ -218,11 +207,24 @@ const requestForgotPassword = asyncHandler(async(req,res)=>{
     if(!generateOtp(email)){
         throw new ApiResponse(500,"OTP generation Failed")
     }
+    const options = {
+        httpOnly: true,
+        secure: true,
+    }
+    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     return res
-            .status(200)
-            .json(
-                new ApiResponse(200,{email},"OTP generation successfull.")
-            )
+    .status(200)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: accessToken,refreshToken
+            },
+            "OTP generation succesfully"
+        )
+    )
 });
 
 const resetPassword = asyncHandler(async(req,res)=>{
@@ -234,26 +236,65 @@ const resetPassword = asyncHandler(async(req,res)=>{
     if (!userRole) {
         throw new ApiError(400, "Invalid role. Must be 'Admin', 'Student', or 'Faculty'");
     }
-    const loggedInUser = await userRole.findOne({email}).select("-password -refreshToken")
     if(!verifyOtp(email,otp)){
         throw new ApiError(400,"OTP is Wrong")
     }
-    userRole.password=newPassword
+    
+    const user = await userRole.findOne({email}).select("-password -refreshToken")
+    user.password=newPassword
     await userRole.save({validateBeforeSave:false})
-
+    const options = {
+        httpOnly: true,
+        secure: true,
+    }
     return res
     .status(200)
+    .clearCookie("accesToken",options)
+    .clearCookie("refreshToken",options)
     .json(
         new ApiResponse(
             200,
             {
-                user:loggedInUser
+
             },
             "Password Changed SuccessFully"
         )
     )
 })
 
+const userDetails = asyncHandler(async(req,res)=>{
+    const userRole = roleModelMap(req.user?.role)
+    try {
+        const user = await userRole.findById(req.user?._id).select("-password -refreshToke -faceEmbedding")
+    } catch (error) {
+        throw new ApiError(500,error,"<<-----Something went wrong")
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,user,"Data fetched succesfully.")
+    )
+});
+
+const updateFaceData = asyncHandler(async(req,res)=>{
+    const {cameraImage} = req.body
+    const cameraImageLocalPath = req.file?.path
+    const userRole = roleModelMap(req.user?.role)
+    const faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
+    if(!faceEmbedding){
+        throw new ApiError(500,"Face embeddings generation failed")
+    }
+    const user = await userRole.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                faceEmbedding: faceEmbedding
+            }
+        },
+        {new:true}
+    ).select("-password -refreshToken")
+});
 
 export {
     loginRequestOtp,
@@ -263,5 +304,6 @@ export {
     logout,
     requestForgotPassword,
     resetPassword,
-    registerUser,
+    userDetails,
+    updateFaceData
 };

@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 const keySchema  = new mongoose.Schema({
-    departmentName:{
+    departmentId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Department",
     },
@@ -18,7 +18,7 @@ const keySchema  = new mongoose.Schema({
             default:true,
         }
     }],
-    StudentKeys:
+    studentKeys:
     [{
         key:
         {

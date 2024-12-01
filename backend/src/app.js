@@ -14,13 +14,15 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 //routes import
-import adminRouter from "./routes/admin.route.js"
-import commonRouter from "./routes/common.route.js"
+import adminRouter from "./routes/admin.routes.js"
+import facultyRouter from "./routes/faculty.routes.js"
+import studentRouter from "./routes/student.routes.js"
 
 
 //routes Declaration
-app.use("/api/v1/admins",adminRouter)
-app.use("/api/v1/common",commonRouter)
+app.use("/api/v1/admin",adminRouter)
+app.use("/api/v1/faculty",facultyRouter)
+app.use("/api/v1/student",studentRouter)
 
 
 

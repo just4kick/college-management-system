@@ -30,10 +30,6 @@ const adminSchema = new mongoose.Schema({
     type:String,
     required:true,
   },
-  cameraImage:{
-    type:String,
-    required:false,
-  },
   isFaceRegistered: {
      type: Boolean,
       default: false
