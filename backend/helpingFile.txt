@@ -24,9 +24,9 @@ removeNoticeByAdmin,
 viewAllNotice,
 
 
-Dept name: Computer Science - 
-                    BCA -> bca101
-                     MCA -> mca101
+Dept name: Computer Science - cs101
+                    BCA -> 
+                     MCA -> 
            B.tech - 
                     CSE - cse201
                     IT - it201

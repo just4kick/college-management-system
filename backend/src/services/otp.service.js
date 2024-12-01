@@ -61,21 +61,27 @@ const generateOtp = async function (email){
 
 const verifyOtp = async function(email,otp){
   
-  if(!email || !otp){
-    throw new ApiError(400, "Email is required")
+
+  if (!email || !otp) {
+    return { message: "Email and OTP are required", output: false };
   }
-  const otpData = otpStore[email]
-  if(!otpData){
-    throw new ApiError(400,"No otp data found for this email. Try again")
+
+  const otpData = otpStore[email];
+
+  if (!otpData) {
+    return { message: "No OTP data found for this email. Try again.", output: false };
   }
-  if(otpData.otp !== otp){
-    throw new ApiError(400,"Invalid OTP")
+
+  if (otpData.otp !== otp) {
+    return { message: "Invalid OTP", output: false };
   }
-  if(Date.now() > otpData.expiry){
-    throw new ApiError(400,"OTP has expired")
+
+  if (Date.now() > otpData.expiry) {
+    return { message: "OTP has expired", output: false };
   }
+
   delete otpStore[email];
-  return true
+  return { message: "OTP verified successfully", output: true };
 
 }
 

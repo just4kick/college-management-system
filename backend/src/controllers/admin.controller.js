@@ -79,28 +79,28 @@ const createAdmin = asyncHandler(async (req, res) => {
     if(!avatar){
         throw new ApiError(400,"Avatar is not availavle")
     }
-
-    const pythonApiUrl = "http://127.0.0.1:5000/api/generate-encoding"; 
-    const imagePath = cameraLocalPath;
-
     let faceEncoding;
-    try {
-        const formData = new FormData();
-        formData.append("image", fs.createReadStream(imagePath));
-
-        const response = await axios.post(pythonApiUrl, formData, {
-            headers: {
-                ...formData.getHeaders(),
-            },
-        });
-
-        faceEncoding = response.data.faceEncoding;
-    } catch (error) {
-        throw new ApiError(500, `Face encoding failed: ${error.response?.data?.error || error.message}`);
-    }
-
-    if (!faceEncoding) {
-        throw new ApiError(500, "Face encoding is missing from the API response");
+    if (cameraLocalPath) {
+        const pythonApiUrl = "http://127.0.0.1:5000/api/generate-encoding"; 
+        const imagePath = cameraLocalPath;
+        try {
+            const formData = new FormData();
+            formData.append("image", fs.createReadStream(imagePath));
+    
+            const response = await axios.post(pythonApiUrl, formData, {
+                headers: {
+                    ...formData.getHeaders(),
+                },
+            });
+    
+            faceEncoding = response.data.faceEncoding;
+        } catch (error) {
+            throw new ApiError(500, `Face encoding failed: ${error.response?.data?.error || error.message}`);
+        }
+    
+        if (!faceEncoding) {
+            throw new ApiError(500, "Face encoding is missing from the API response");
+        }
     }
     
     const admin = await Admin.create({
@@ -129,11 +129,16 @@ const createAdmin = asyncHandler(async (req, res) => {
 
 const createDepartment = asyncHandler(async (req, res) => {
     // TODO: Implement createDepartment
-    const {name,courses,deptId} = req.body
+    let { name, courses, deptId } = req.body
+
     if(!name && !courses && deptId){
         throw new ApiError(400,"Name and courses are mandatory.")
 
     }
+    name = name.trim().toLowerCase()
+    courses = courses.trim().toLowerCase()
+    deptId = deptId.trim().toLowerCase()
+    
     const createdDept = await Department.create({
         name,
         deptId,
@@ -312,6 +317,7 @@ const registerFaculty = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.files?.avatar[0].path
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const cameraImageLocalPath = req.files?.cameraImage[0].path
+    
     const faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
 
     const faculty = await Faculty.create({

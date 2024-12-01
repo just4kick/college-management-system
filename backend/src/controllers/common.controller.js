@@ -77,9 +77,8 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
         new ApiResponse(
             200,
             {
-                user: accessToken,refreshToken
             },
-            "OTP generation succesfully"
+            `OTP generation succesfully: ${email} `
         )
     )
 
@@ -89,7 +88,8 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
 const loginVerifyOtp = asyncHandler(async (req, res) => {
     // TODO: Implement login
 
-    const {otp,role}=req.body
+    const {otp}=req.body
+    const role = req.user?.role
     if(!otp && !role){
         throw new ApiError(400,"otp and role is required")
     }
@@ -97,13 +97,12 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
     if (!userRole) {
         throw new ApiError(400, "Invalid role. Must be 'Admin', 'Student', or 'Faculty'");
     }
-    const loggedInUser = await userRole.findById(req.user?._id).select("-password -refreshToken")
+    const loggedInUser = await userRole.findById(req.user?._id).select("-password -refreshToken -faceEmbedding")
     const email = loggedInUser.email
-    if(!verifyOtp(email,otp)){
-        throw new ApiError(400,"OTP is Wrong")
-    }
-
-    return res
+    const result = await verifyOtp(email,otp)
+    // console.log(result)
+    if(result.output){
+        return res
     .status(200)
     .json(
         new ApiResponse(
@@ -114,6 +113,18 @@ const loginVerifyOtp = asyncHandler(async (req, res) => {
             "OTP Verification SuccessFul"
         )
     )
+    }else{
+        return res
+    .status(401)
+    .json(
+        new ApiResponse(
+            401,
+            {},`OTP verification Failed: Reason-> ${result.message}`
+        )
+    )
+    }
+
+    
 });
 
 const faceRecognitionLogin = asyncHandler(async (req, res) => {
@@ -134,8 +145,11 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
         throw new ApiError(400,"Camera Image is required")
     }
     const faceEmbeddings = user.faceEmbedding;
-    console.log(faceEmbeddings)
-
+    // console.log(faceEmbeddings)
+    const options = {
+        httpOnly: true,
+        secure: true,
+    }
         if(verifyAndRespond(cameraLocalPath,faceEmbeddings)){
             return res
             .status(200)
@@ -174,8 +188,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 const logout = asyncHandler(async (req, res) => {
     // TODO: Implement logout
-    const user = req.user
-    await user.findByIdAndUpdate(
+    const user = req.user?.role
+    const userRole = roleModelMap[user]
+    const result = await userRole.findByIdAndUpdate(
         req.user._id,
         {
             $unset:{
@@ -185,7 +200,7 @@ const logout = asyncHandler(async (req, res) => {
         {
             new:true
         }
-    )
+    ).select("-password -refreshToken -faceEmbedding -avatar")
 
     const options = {
         httpOnly: true,
@@ -194,9 +209,9 @@ const logout = asyncHandler(async (req, res) => {
 
     return res
     .status(200)
-    .clearCookie("accesToken",options)
+    .clearCookie("accessToken",options)
     .clearCookie("refreshToken",options)
-    .json(new ApiResponse(200,{},"User logged out"))
+    .json(new ApiResponse(200,result,"User logged out"))
 });
 
 const requestForgotPassword = asyncHandler(async(req,res)=>{
@@ -211,18 +226,14 @@ const requestForgotPassword = asyncHandler(async(req,res)=>{
         httpOnly: true,
         secure: true,
     }
-    const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     return res
     .status(200)
-    .cookie("accessToken",accessToken,options)
-    .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
             200,
             {
-                user: accessToken,refreshToken
             },
-            "OTP generation succesfully"
+            `OTP generation succesfully: ${email}`
         )
     )
 });
@@ -236,21 +247,19 @@ const resetPassword = asyncHandler(async(req,res)=>{
     if (!userRole) {
         throw new ApiError(400, "Invalid role. Must be 'Admin', 'Student', or 'Faculty'");
     }
-    if(!verifyOtp(email,otp)){
-        throw new ApiError(400,"OTP is Wrong")
-    }
-    
+
+    const result = await verifyOtp(email,otp)
+    // console.log(result)
+    if(result.output){
     const user = await userRole.findOne({email}).select("-password -refreshToken")
     user.password=newPassword
-    await userRole.save({validateBeforeSave:false})
+    await user.save({validateBeforeSave:false})
     const options = {
         httpOnly: true,
         secure: true,
     }
     return res
     .status(200)
-    .clearCookie("accesToken",options)
-    .clearCookie("refreshToken",options)
     .json(
         new ApiResponse(
             200,
@@ -260,27 +269,38 @@ const resetPassword = asyncHandler(async(req,res)=>{
             "Password Changed SuccessFully"
         )
     )
+    }else{
+        return res
+    .status(401)
+    .json(
+        new ApiResponse(
+            401,
+            {},`OTP verification Failed: Reason-> ${result.message}`
+        )
+    )
+    }
+    
+    
 })
 
 const userDetails = asyncHandler(async(req,res)=>{
-    const userRole = roleModelMap(req.user?.role)
+    const userRole = roleModelMap[req.user?.role]
+    let result;
     try {
-        const user = await userRole.findById(req.user?._id).select("-password -refreshToke -faceEmbedding")
+        result = await userRole.findById(req.user?._id).select("-password -refreshToken -faceEmbedding")
     } catch (error) {
         throw new ApiError(500,error,"<<-----Something went wrong")
     }
-
     return res
     .status(200)
     .json(
-        new ApiResponse(200,user,"Data fetched succesfully.")
+        new ApiResponse(200,result,"Data fetched succesfully.")
     )
 });
 
 const updateFaceData = asyncHandler(async(req,res)=>{
-    const {cameraImage} = req.body
     const cameraImageLocalPath = req.file?.path
-    const userRole = roleModelMap(req.user?.role)
+    const userRole = roleModelMap[req.user?.role]
     const faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
     if(!faceEmbedding){
         throw new ApiError(500,"Face embeddings generation failed")
@@ -294,6 +314,11 @@ const updateFaceData = asyncHandler(async(req,res)=>{
         },
         {new:true}
     ).select("-password -refreshToken")
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,user,"Face data updated succesfully.")
+    )
 });
 
 export {

@@ -1,0 +1,907 @@
+{
+	"info": {
+		"_postman_id": "unique-id-for-collection",
+		"name": "College Management System API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Admin Routes",
+			"item": [
+				{
+					"name": "Login Request",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"admin@example.com\", \"password\": \"password123\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/login-request",
+							"host": ["{{base_url}}"],
+							"path": ["login-request"]
+						}
+					}
+				},
+				{
+					"name": "Face Login",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/face-login",
+							"host": ["{{base_url}}"],
+							"path": ["face-login"]
+						}
+					}
+				},
+				{
+					"name": "Request Forgot Password",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/admin/request-forgot-pass",
+							"host": ["{{base_url}}"],
+							"path": ["request-forgot-pass"]
+						}
+					}
+				},
+				{
+					"name": "Create Admin",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "fullName", "value": "Admin Name", "type": "text" },
+								{ "key": "email", "value": "admin@example.com", "type": "text" },
+								{ "key": "phoneNumber", "value": "9876543210", "type": "text" },
+								{ "key": "password", "value": "password123", "type": "text" },
+								{ "key": "role", "value": "admin", "type": "text" },
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/create-Admin",
+							"host": ["{{base_url}}"],
+							"path": ["create-Admin"]
+						}
+					}
+				},
+				{
+					"name": "Create Department",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"name\": \"Computer Science\", \"description\": \"CS Department\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/create-dept",
+							"host": ["{{base_url}}"],
+							"path": ["create-dept"]
+						}
+					}
+				},
+				{
+					"name": "View Departments",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/admin/view-dept",
+							"host": ["{{base_url}}"],
+							"path": ["view-dept"]
+						}
+					}
+				},
+				{
+					"name": "Update Course",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{base_url}}/admin/update-course",
+							"host": ["{{base_url}}"],
+							"path": ["update-course"]
+						}
+					}
+				},
+				{
+					"name": "Delete Department",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{base_url}}/admin/delete-dept",
+							"host": ["{{base_url}}"],
+							"path": ["delete-dept"]
+						}
+					}
+				},
+				{
+					"name": "Assign HOD",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"departmentId\": \"dept_id\", \"facultyId\": \"faculty_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/assign-hod",
+							"host": ["{{base_url}}"],
+							"path": ["assign-hod"]
+						}
+					}
+				},
+				{
+					"name": "Revoke HOD",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{base_url}}/admin/revoke-hod",
+							"host": ["{{base_url}}"],
+							"path": ["revoke-hod"]
+						}
+					}
+				},
+				{
+					"name": "Register Faculty",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/register-faculty",
+							"host": ["{{base_url}}"],
+							"path": ["register-faculty"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/admin/logout",
+							"host": ["{{base_url}}"],
+							"path": ["logout"]
+						}
+					}
+				},
+				{
+					"name": "Login Verify OTP",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"otp\": \"123456\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/login-verify",
+							"host": ["{{base_url}}"],
+							"path": ["login-verify"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"currentPassword\": \"oldpass123\", \"newPassword\": \"newpass456\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["change-password"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"user@example.com\", \"newPassword\": \"resetpass123\", \"otp\": \"654321\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/reset-password",
+							"host": ["{{base_url}}"],
+							"path": ["reset-password"]
+						}
+					}
+				},
+				{
+					"name": "User Details",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/admin/user-detail",
+							"host": ["{{base_url}}"],
+							"path": ["user-detail"]
+						}
+					}
+				},
+				{
+					"name": "Update Face Data",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/update-face",
+							"host": ["{{base_url}}"],
+							"path": ["update-face"]
+						}
+					}
+				},
+				{
+					"name": "Generate Registration Key",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/admin/generate-keys",
+							"host": ["{{base_url}}"],
+							"path": ["generate-keys"]
+						}
+					}
+				},
+				{
+					"name": "View Registration Keys",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/view-keys",
+							"host": ["{{base_url}}"],
+							"path": ["view-keys"]
+						}
+					}
+				},
+				{
+					"name": "Revoke Registration Key",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"keyId\": \"key_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/revoke-keys",
+							"host": ["{{base_url}}"],
+							"path": ["revoke-keys"]
+						}
+					}
+				},
+				{
+					"name": "Grant Registration Key",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"keyId\": \"key_id\", \"userId\": \"user_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/grant-keys",
+							"host": ["{{base_url}}"],
+							"path": ["grant-keys"]
+						}
+					}
+				},
+				{
+					"name": "Remove Registration Key",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"keyId\": \"key_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/remove-keys",
+							"host": ["{{base_url}}"],
+							"path": ["remove-keys"]
+						}
+					}
+				},
+				{
+					"name": "Add Notice",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"title\": \"Important Notice\", \"content\": \"Details of the notice here.\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/admin/add-notice",
+							"host": ["{{base_url}}"],
+							"path": ["add-notice"]
+						}
+					}
+				},
+				{
+					"name": "Remove Notice",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{base_url}}/admin/remove-notice",
+							"host": ["{{base_url}}"],
+							"path": ["remove-notice"]
+						}
+					}
+				},
+				{
+					"name": "View Notices",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/admin/view-notice",
+							"host": ["{{base_url}}"],
+							"path": ["view-notice"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Faculty Routes",
+			"item": [
+				{
+					"name": "Login Request",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"faculty@example.com\", \"password\": \"password123\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/login-request",
+							"host": ["{{base_url}}"],
+							"path": ["login-request"]
+						}
+					}
+				},
+				{
+					"name": "Face Login",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/face-login",
+							"host": ["{{base_url}}"],
+							"path": ["face-login"]
+						}
+					}
+				},
+				{
+					"name": "Request Forgot Password",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"faculty@example.com\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/request-forgot-pass",
+							"host": ["{{base_url}}"],
+							"path": ["request-forgot-pass"]
+						}
+					}
+				},
+				{
+					"name": "Self-Register Faculty",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "cameraImage", "type": "file", "src": "" },
+								{ "key": "name", "value": "Faculty Name", "type": "text" },
+								{ "key": "email", "value": "faculty@example.com", "type": "text" },
+								{ "key": "password", "value": "password123", "type": "text" },
+								{ "key": "phoneNumber", "value": "9876543210", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/self-register-faculty",
+							"host": ["{{base_url}}"],
+							"path": ["self-register-faculty"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/faculty/logout",
+							"host": ["{{base_url}}"],
+							"path": ["logout"]
+						}
+					}
+				},
+				{
+					"name": "View Students",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/view-students",
+							"host": ["{{base_url}}"],
+							"path": ["view-students"]
+						}
+					}
+				},
+				{
+					"name": "Update Faculty Details",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"name\": \"John Doe\", \"contact\": \"1234567890\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/updateFacultyDetails",
+							"host": ["{{base_url}}"],
+							"path": ["updateFacultyDetails"]
+						}
+					}
+				},
+				{
+					"name": "Register Student",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "cameraImage", "type": "file", "src": "" },
+								{ "key": "name", "value": "Student Name", "type": "text" },
+								{ "key": "rollNumber", "value": "1234", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/register-student",
+							"host": ["{{base_url}}"],
+							"path": ["register-student"]
+						}
+					}
+				},
+				{
+					"name": "Delete Student",
+					"request": {
+						"method": "DELETE",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"studentId\": \"student_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/delete-student",
+							"host": ["{{base_url}}"],
+							"path": ["delete-student"]
+						}
+					}
+				},
+				{
+					"name": "Search Student",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/faculty/search-student?name=StudentName",
+							"host": ["{{base_url}}"],
+							"path": ["search-student"],
+							"query": [
+								{ "key": "name", "value": "StudentName" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Login Verify OTP",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"faculty@example.com\", \"otp\": \"123456\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/login-verify",
+							"host": ["{{base_url}}"],
+							"path": ["login-verify"]
+						}
+					}
+				},
+				{
+					"name": "Change Current Password",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"currentPassword\": \"oldPass123\", \"newPassword\": \"newPass123\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["change-password"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"faculty@example.com\", \"newPassword\": \"newPass123\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/reset-password",
+							"host": ["{{base_url}}"],
+							"path": ["reset-password"]
+						}
+					}
+				},
+				{
+					"name": "User Details",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/faculty/user-detail",
+							"host": ["{{base_url}}"],
+							"path": ["user-detail"]
+						}
+					}
+				},
+				{
+					"name": "Update Face Data",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/update-face",
+							"host": ["{{base_url}}"],
+							"path": ["update-face"]
+						}
+					}
+				},
+				{
+					"name": "Register Faculty (HOD only)",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "cameraImage", "type": "file", "src": "" },
+								{ "key": "name", "value": "Faculty Name", "type": "text" },
+								{ "key": "email", "value": "faculty@example.com", "type": "text" },
+								{ "key": "password", "value": "password123", "type": "text" },
+								{ "key": "phoneNumber", "value": "9876543210", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/register-faculty",
+							"host": ["{{base_url}}"],
+							"path": ["register-faculty"]
+						}
+					}
+				},
+				{
+					"name": "Delete Faculty (HOD only)",
+					"request": {
+						"method": "DELETE",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"facultyId\": \"faculty_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/delete-faculty",
+							"host": ["{{base_url}}"],
+							"path": ["delete-faculty"]
+						}
+					}
+				},
+				{
+					"name": "Search Faculty (HOD only)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/faculty/search-faculty?name=FacultyName",
+							"host": ["{{base_url}}"],
+							"path": ["search-faculty"],
+							"query": [
+								{ "key": "name", "value": "FacultyName" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Add Notice (HOD only)",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"title\": \"Exam Schedule\", \"content\": \"The final exams are scheduled for next week.\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/add-notice-hod",
+							"host": ["{{base_url}}"],
+							"path": ["add-notice-hod"]
+						}
+					}
+				},
+				{
+					"name": "Remove Notice (HOD only)",
+					"request": {
+						"method": "DELETE",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"noticeId\": \"notice_id\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/faculty/remove-notice-hod",
+							"host": ["{{base_url}}"],
+							"path": ["remove-notice-hod"]
+						}
+					}
+				},
+				{
+					"name": "View Notices (HOD only)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{base_url}}/faculty/view-notice-hod",
+							"host": ["{{base_url}}"],
+							"path": ["view-notice-hod"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Student Routes",
+			"item": [
+				{
+					"name": "Self Register Student",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "cameraImage", "type": "file", "src": "" },
+								{ "key": "name", "value": "Student Name", "type": "text" },
+								{ "key": "email", "value": "student@example.com", "type": "text" },
+								{ "key": "password", "value": "password123", "type": "text" },
+								{ "key": "phoneNumber", "value": "9876543210", "type": "text" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/student/self-register-student",
+							"host": ["{{base_url}}"],
+							"path": ["self-register-student"]
+						}
+					}
+				},
+				{
+					"name": "Update Personal Details",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "avatar", "type": "file", "src": "" },
+								{ "key": "phoneNumber", "value": "9876543210", "type": "text" }
+							]
+						},
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/update-detail",
+							"host": ["{{base_url}}"],
+							"path": ["update-detail"]
+						}
+					}
+				},
+				{
+					"name": "Login Request OTP",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"student@example.com\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/student/login-request",
+							"host": ["{{base_url}}"],
+							"path": ["login-request"]
+						}
+					}
+				},
+				{
+					"name": "Login Verify OTP",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"student@example.com\", \"otp\": \"123456\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/login-verify",
+							"host": ["{{base_url}}"],
+							"path": ["login-verify"]
+						}
+					}
+				},
+				{
+					"name": "Face Login",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/student/face-login",
+							"host": ["{{base_url}}"],
+							"path": ["face-login"]
+						}
+					}
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"currentPassword\": \"oldPass123\", \"newPassword\": \"newPass123\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["change-password"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/logout",
+							"host": ["{{base_url}}"],
+							"path": ["logout"]
+						}
+					}
+				},
+				{
+					"name": "Request Forgot Password",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"email\": \"student@example.com\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"url": {
+							"raw": "{{base_url}}/student/request-forgot-pass",
+							"host": ["{{base_url}}"],
+							"path": ["request-forgot-pass"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"newPassword\": \"newPass123\" }",
+							"options": { "raw": { "language": "json" } }
+						},
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/reset-password",
+							"host": ["{{base_url}}"],
+							"path": ["reset-password"]
+						}
+					}
+				},
+				{
+					"name": "User Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/user-detail",
+							"host": ["{{base_url}}"],
+							"path": ["user-detail"]
+						}
+					}
+				},
+				{
+					"name": "Update Face Data",
+					"request": {
+						"method": "PATCH",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "cameraImage", "type": "file", "src": "" }
+							]
+						},
+						"header": [
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/student/update-face",
+							"host": ["{{base_url}}"],
+							"path": ["update-face"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
