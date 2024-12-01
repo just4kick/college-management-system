@@ -1,6 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { Faculty } from "../models/admin.models.js";
+import { Faculty } from "../models/faculty.models.js";
 
 export const verifyHOD = asyncHandler(async(req,res,next)=>{
     try {

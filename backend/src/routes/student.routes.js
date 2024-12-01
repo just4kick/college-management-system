@@ -43,3 +43,5 @@ router.route("/request-forgot-pass").post(requestForgotPassword),
 router.route("/reset-password").patch(verifyJWT,resetPassword)
 router.route("/user-detail").get(verifyJWT,userDetails)
 router.route("/update-face").patch(upload.single("cameraImage"),verifyJWT,updateFaceData)
+
+export default router

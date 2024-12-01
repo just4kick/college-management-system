@@ -91,3 +91,5 @@ router.route("/search-faculty").get(verifyHOD,searchFaculty)
 router.route("/add-notice-hod").post(verifyHOD,addNoticeByHOD)
 router.route("/remove-notice-hod").delete(verifyHOD,removeNoticeByHOD)
 router.route("/view-notice-hod").get(verifyHOD,viewAllNotice)
+
+export default router

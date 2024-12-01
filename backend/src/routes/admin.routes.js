@@ -25,6 +25,17 @@ addNoticeByAdmin,
 removeNoticeByAdmin,
 viewAllNotice,
 } from "../controllers/admin.controller.js"
+import {
+    loginRequestOtp,
+    loginVerifyOtp,
+    faceRecognitionLogin,
+    changeCurrentPassword,
+    logout,
+    requestForgotPassword,
+    resetPassword,
+    userDetails,
+    updateFaceData
+} from "../controllers/common.controller.js"
 import {upload} from "../middlewares/multer.middleware.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 import {verifyAdmin} from "../middlewares/verifyAdmin.middleware.js"

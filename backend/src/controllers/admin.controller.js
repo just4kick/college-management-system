@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 //modles
 import {Admin} from "../models/admin.models.js"
 import { Department } from "../models/dept.models.js";
-import {Faculty} from "../models/faculty.modles.js"
+import {Faculty} from "../models/faculty.models.js"
 import {Student} from "../models/student.models.js"
 import {Key} from "../models/regkey.models.js"
 import {Notice} from "../models/notice.models.js"

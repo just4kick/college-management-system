@@ -2,7 +2,7 @@ import mongoose, { Schema } from "mongoose";
 
 const noticeSchema = new mongoose.Schema({
     title:{
-        tpye:String,
+        type:String,
         required:true,
     },
     content:{
@@ -10,7 +10,7 @@ const noticeSchema = new mongoose.Schema({
         required:true,
     },
     createdBy:{
-        type:mongoose.Schema.Types.objectId,
+        type:mongoose.Schema.Types.ObjectId,
         refPath:"createdByModel",
         required:true,
     },
@@ -20,7 +20,7 @@ const noticeSchema = new mongoose.Schema({
         enum:['Admin','Faculty']
     },
     department:{
-        type:mongoose.Schema.Types.objectId,
+        type:mongoose.Schema.Types.ObjectId,
         ref:"Department",
         default:null,
     },

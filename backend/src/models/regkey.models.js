@@ -9,7 +9,7 @@ const keySchema  = new mongoose.Schema({
     [{
         key:
         {
-            tpye:String,
+            type:String,
             required:true,
         },
         isActive:
@@ -22,7 +22,7 @@ const keySchema  = new mongoose.Schema({
     [{
         key:
         {
-            tpye:String,
+            type:String,
             required:true,
         },
         isActive:

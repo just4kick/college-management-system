@@ -1,7 +1,8 @@
-const axios = require("axios");
-const fs = require("fs");
-const FormData = require("form-data");
-const ApiError = require("../utils/ApiError");
+import axios from "axios";
+import fs from "fs";
+import FormData from "form-data";
+import { ApiError } from "../utils/ApiError.js";
+
 
 // API URLs
 const FACE_ENCODING_URL = "http://127.0.0.1:5000/api/generate-encoding";
@@ -76,8 +77,7 @@ const verifyAndRespond = async (imagePath, referenceEncoding, threshold = 0.7) =
         return false; // Return false in case of errors
     }
 };
-
-module.exports = {
+export {
     generateFaceEncoding,
     verifyFaceEncoding,
     verifyAndRespond, 
