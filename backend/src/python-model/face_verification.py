@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import face_recognition
 import os
+import json
+import uuid
 
 # Initialize Flask App
 app = Flask(__name__)
@@ -19,7 +21,7 @@ def generate_encoding():
         return jsonify({'error': 'Image not provided'}), 400
 
     image = request.files['image']
-    image_path = os.path.join(UPLOAD_FOLDER, 'face_image.jpg')
+    image_path = os.path.join(UPLOAD_FOLDER, f'{uuid.uuid4()}_face_image.jpg')  # Unique file name
     image.save(image_path)
 
     try:
@@ -27,11 +29,9 @@ def generate_encoding():
         loaded_image = face_recognition.load_image_file(image_path)
         face_encodings = face_recognition.face_encodings(loaded_image)
 
-        # Check if a face was detected
         if len(face_encodings) == 0:
             raise ValueError("No face detected in the uploaded image.")
 
-        # Return the first face encoding
         return jsonify({'faceEncoding': face_encodings[0].tolist()})
 
     except Exception as e:
@@ -52,13 +52,22 @@ def verify_encoding():
         return jsonify({'error': 'Image or reference encoding not provided'}), 400
 
     image = request.files['image']
-    reference_encoding = request.form.get('referenceEncoding')  # Should be a JSON string
+    reference_encoding_str = request.form.get('referenceEncoding')  # JSON string
     match_threshold = float(request.form.get('threshold', 0.7))  # Default threshold is 0.7
 
-    image_path = os.path.join(UPLOAD_FOLDER, 'verify_face_image.jpg')
-    image.save(image_path)
-
+    # Deserialize reference encoding safely
     try:
+        reference_encoding = json.loads(reference_encoding_str)
+        if not isinstance(reference_encoding, list) or not all(isinstance(v, (float, int)) for v in reference_encoding):
+            raise ValueError("Reference encoding must be a list of numbers")
+    except (json.JSONDecodeError, ValueError) as e:
+        return jsonify({'error': f'Invalid reference encoding format: {str(e)}'}), 400
+
+    # Save the uploaded image temporarily
+    image_path = os.path.join(UPLOAD_FOLDER, f'{uuid.uuid4()}_verify_face_image.jpg')
+    try:
+        image.save(image_path)
+
         # Get face encodings from the uploaded image
         uploaded_image = face_recognition.load_image_file(image_path)
         uploaded_encodings = face_recognition.face_encodings(uploaded_image)
@@ -68,24 +77,27 @@ def verify_encoding():
 
         uploaded_encoding = uploaded_encodings[0]
 
-        # Convert reference encoding from JSON string to list
-        reference_encoding = eval(reference_encoding)
-
         # Calculate the face distance
         distance = face_recognition.face_distance([reference_encoding], uploaded_encoding)[0]
         is_match = distance <= match_threshold
 
-        # Wrap the boolean and float in a JSON-serializable structure
-        return jsonify({'isMatch': bool(is_match), 'distance': float(distance)})
+        # Ensure response types are JSON-serializable
+        response = {
+            'isMatch': bool(is_match),  # Explicitly cast to bool
+            'distance': float(distance),  # Explicitly cast to float
+        }
+
+        return jsonify(response)
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        error_trace = traceback.format_exc()
+        print(f"Error: {str(e)}\n{error_trace}")  # Log full traceback for debugging
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
     finally:
-        # Clean up the file
+        # Clean up the temporary file
         if os.path.exists(image_path):
             os.remove(image_path)
-
 
 
 # Main Entry Point

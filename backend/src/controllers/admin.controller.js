@@ -136,7 +136,6 @@ const createDepartment = asyncHandler(async (req, res) => {
 
     }
     name = name.trim().toLowerCase()
-    courses = courses.trim().toLowerCase()
     deptId = deptId.trim().toLowerCase()
     
     const createdDept = await Department.create({
@@ -183,7 +182,7 @@ const addCourse = asyncHandler(async (req, res) => {
         throw new ApiError(500,"Given department is not Valid")
         
     }
-    dept.courses.append("course")
+    dept.courses.push(course)
     await dept.save({validateBeforeSave:false})
     return res
             .status(200)
@@ -194,15 +193,18 @@ const addCourse = asyncHandler(async (req, res) => {
 
 const deleteDepartment = asyncHandler(async (req, res) => {
     // TODO: Implement deleteDepartment
-    const {deptName} = req.body
-    if(!deptName){
+    const {deptId} = req.body
+    if(!deptId){
         throw new ApiError(400,"Dept name is required")
     }
-
+    let result;
     try {
-        await Department.deleteOne({name:deptName})     
+         result = await Department.deleteOne({deptId})     
     } catch (error) {
         throw new ApiError(400,error,"Something went Wrong")
+    }
+    if(result.deletedCount===0){
+        return res.status(503).json(new ApiResponse(503,{},"DeptId not found"))
     }
     return res
             .status(200)
@@ -383,25 +385,56 @@ const searchFaculty = asyncHandler(async(req,res)=>{
 const viewAllFacultyDeptWise = asyncHandler(async (req, res) => {
     // TODO: Implement registerStudent
     try {
-        const facultiesByDept = await Faculty.aggregate([
+        // const facultiesByDept = await Faculty.aggregate([
+        //     {
+        //         $lookup:{
+        //             from:"departments",
+        //             localField:"department",
+        //             foreignField:"_id",
+        //             as:"departmentDetails"
+        //         }
+        //     },
+        //     { $unwind: {
+        //         path: "$departmentDetails", 
+        //         preserveNullAndEmptyArrays: true  
+        //     }
+        //     },
+        //     {
+        //         $group: {
+        //     _id: "$departmentDetails._id",   
+        //     departmentName: { $first: "$departmentDetails.name" },  
+        //     faculties: { $push: "$fullName" } 
+        // }
+        //     },
+        //     {$sort:{_id:1}}
+        // ])
+        const facultiesByDept = await Department.aggregate([
             {
-                $lookup:{
-                    from:"departments",
-                    localField:"department",
-                    foreignField:"_id",
-                    as:"departmentDetails"
+                $lookup: {
+                    from: "faculties",            
+                    localField: "_id",            
+                    foreignField: "department",   
+                    as: "faculties"               
                 }
             },
-            {$unwind:"departmentDetails"},
             {
-                $group:{
-                    _id:"$departmentDetails.name",
-                    faculties:{$push:"$fullName"}
+                $unwind: {
+                    path: "$faculties", 
+                    preserveNullAndEmptyArrays: true 
                 }
             },
-            {$sort:{_id:1}}
-        ])
-
+            {
+                $group: {
+                    _id: "$_id",                   
+                    departmentName: { $first: "$name" },  
+                    faculties: { $push: "$faculties.fullName" } 
+                }
+            },
+            { 
+                $sort: { departmentName: 1 }  // Sort by department name
+            }
+        ]);
+        
         if(!facultiesByDept){
             throw new ApiError(500,"Something went Wrong During Fetching Data")
         }
@@ -513,24 +546,51 @@ const searchStudent = asyncHandler(async(req,res)=>{
 const viewAllStudentDeptWise = asyncHandler(async (req, res) => {
     // TODO: Implement registerStudent
     try {
-        const StudentByDept = await Student.aggregate([
+        // const StudentdByDept = await Student.aggregate([
+        //     {
+        //         $lookup:{
+        //             from:"departments",
+        //             localField:"department",
+        //             foreignField:"_id",
+        //             as:"departmentDetails"
+        //         }
+        //     },
+        //     {$unwind:"$departmentDetails"},
+        //     {
+        //         $group:{
+        //             _id:"$departmentDetails.name",
+        //             studentt:{$push:"$fullName"}
+        //         }
+        //     },
+        //     {$sort:{_id:1}}
+        // ])
+
+        const StudentByDept = await Department.aggregate([
             {
-                $lookup:{
-                    from:"departments",
-                    localField:"department",
-                    foreignField:"_id",
-                    as:"departmentDetails"
+                $lookup: {
+                    from: "students",            
+                    localField: "_id",            
+                    foreignField: "department",   
+                    as: "studentDetails"               
                 }
             },
-            {$unwind:"departmentDetails"},
             {
-                $group:{
-                    _id:"$departmentDetails.name",
-                    studentt:{$push:"$fullName"}
+                $unwind: {
+                    path: "$studentDetails", 
+                    preserveNullAndEmptyArrays: true 
                 }
             },
-            {$sort:{_id:1}}
-        ])
+            {
+                $group: {
+                    _id: "$_id",                   
+                    departmentName: { $first: "$name" },  
+                    students: { $push: "$studentDetails.fullName" } 
+                }
+            },
+            { 
+                $sort: { departmentName: 1 } 
+            }
+        ]);
 
         if(!StudentByDept){
             throw new ApiError(500,"Something went Wrong During Fetching Data")
@@ -615,7 +675,7 @@ const viewRegistrationKey = asyncHandler(async (req, res) => {
     return res
             .status(200)
             .json(
-                new ApiResponse(200,"Fetching succesfull")
+                new ApiResponse(200,result,"Fetching succesfull")
             )
 });
 
@@ -809,187 +869,89 @@ const grantRegistrationKey = asyncHandler(async (req, res) => {
 });
 
 const addRegistrationKey = asyncHandler(async (req, res) => {
-    // TODO: Implement modifyRegistrationKey
     const { deptId, keysToadd, role } = req.body;
-    const dept = await Department.findOne({deptId})
-    if(!dept){
-        throw new ApiError(500,"DeptId is invalid")
+    
+    const keys = Array.isArray(keysToadd) ? keysToadd : [keysToadd];
+
+    if (!keys || (Array.isArray(keys) && keys.some((key) => key.length !== 10)) || (typeof keys === "string" && keys.length !== 10)) {
+        return res.status(400).json(
+            new ApiResponse(400, {}, "Each key must be exactly 10 characters long.")
+        );
+    }
+
+    
+    const dept = await Department.findOne({ deptId });
+    if (!dept) {
+        throw new ApiError(404, "Department ID is invalid or not found.");
+    }
+
+ 
+    let keyDoc = await Key.findOne({ departmentId: dept._id });
+    if (!keyDoc) {
+        throw new ApiError(404, "Key document not found for this department");
+    }
+
+   
+    if (role === "faculty") {
+        keys.forEach((key) => {
+            if (!keyDoc.facultyKeys.some((k) => k.key === key)) {
+                keyDoc.facultyKeys.push({ key });
+            }
+        });
+    } else if (role === "student") {
+        keys.forEach((key) => {
+            if (!keyDoc.studentKeys.some((k) => k.key === key)) {
+                keyDoc.studentKeys.push({ key });
+            }
+        });
+    } else {
+        return res.status(400).json(
+            new ApiResponse(400, {}, "Invalid role. Role must be 'faculty' or 'student'.")
+        );
     }
 
 
-    if(keysToadd && Array.isArray(keysToadd)){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $push: { facultyKeys: { key: { $in: keysToadd } } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key Deleted successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $push: { StudentKeys: { key: { $in: keysToadd } } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key Deleted successfully",
-                data: updatedDocument,
-            });
-        }
-    }else if(keysToadd){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $push: { facultyKeys: { key:keysToadd } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key Deleted successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $push: { StudentKeys: { key: { $in: keysToadd } } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key Deleted successfully",
-                data: updatedDocument,
-            });
-        }
-    }else{
-        throw new ApiError(500,"Search Key not found")
-    }
+    await keyDoc.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, { data: keyDoc }, `${role} keys added successfully.`)
+    );
 });
 
+
 const removeRegistrationKey = asyncHandler(async (req, res) => {
-    // TODO: Implement modifyRegistrationKey
-    const {deptId,searchKey,role} = req.body
-    const dept = await Department.findOne({deptId})
-    if(!dept){
-        throw new ApiError(500,"DeptId is invalid")
+    const { deptId, keys, role } = req.body;
+
+    if (!keys || (Array.isArray(keys) && keys.some((key) => key.length !== 10)) || (typeof keys === "string" && keys.length !== 10)) {
+        return res.status(400).json(
+            new ApiResponse(400, {}, "Each key must be exactly 10 characters long.")
+        );
     }
 
-
-    if(searchKey && Array.isArray(searchKey)){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $pull: { facultyKeys: { key: { $in: searchKey } } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key Deleted successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $pull: { StudentKeys: { key: { $in: searchKey } } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key Deleted successfully",
-                data: updatedDocument,
-            });
-        }
-    }else if(searchKey){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $pull: { facultyKeys: { key:searchKey } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key Deleted successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id}, 
-                {
-                    $pull: { StudentKeys: { key: { $in: searchKey } } },
-                },
-                { 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key Deleted successfully",
-                data: updatedDocument,
-            });
-        }
-    }else{
-        throw new ApiError(500,"Search Key not found")
+    const dept = await Department.findOne({ deptId });
+    if (!dept) {
+        throw new ApiError(404, "Department ID is invalid or not found.");
     }
+
+    const keyDoc = await Key.findOne({ departmentId: dept._id });
+    if (!keyDoc) {
+        throw new ApiError(404, "Key document not found for this department.");
+    }
+
+    let updated = false;
+
+     if (role === "faculty") {
+        keyDoc.facultyKeys = keyDoc.facultyKeys.filter((k) => !keys.includes(k.key));
+    } else if (role === "student") {
+        keyDoc.studentKeys = keyDoc.studentKeys.filter((k) => !keys.includes(k.key));
+    } else {
+        throw new ApiError(400, "Invalid role");
+    }
+
+    await keyDoc.save();
+    return res.status(200).json(
+        new ApiResponse(200, { data: keyDoc }, `${role} keys removed successfully.`)
+    );
 });
 
 const addNoticeByAdmin = asyncHandler(async (req,res)=>{
@@ -1021,7 +983,6 @@ const addNoticeByAdmin = asyncHandler(async (req,res)=>{
 
 const removeNoticeByAdmin = asyncHandler(async (req,res)=>{
     //TODO: remove notice by admin
-    const removeNotice = asyncHandler(async (req, res) => {
         const { id } = req.body; 
         
         if (!id) {
@@ -1035,19 +996,15 @@ const removeNoticeByAdmin = asyncHandler(async (req,res)=>{
         return res.status(200).json(
              new ApiResponse(200,{},"Notice deleted successfully." )
             );
-    });
-    
-
 });
 
 const viewAllNotice = asyncHandler(async (req,res)=>{
     //TODO: Implement notice 
-
-    // const globalNotices = await Notice.find({ isGlobal: true }).populate('createdBy _id name');
+    let allNotices;
     try {
-        const allNotices = await Notice.find({
+         allNotices = await Notice.find({
             $or: [{ isGlobal: true },  {department: { $exists: true }}]
-        }).populate('createdBy _id name').populate('department _id name');  
+        }).populate('createdBy','_id fullName').populate('department', '_id name').setOptions({ strictPopulate: false });  
     } catch (error) {
         throw new ApiError(500,error,"Something went wrong.")
     }

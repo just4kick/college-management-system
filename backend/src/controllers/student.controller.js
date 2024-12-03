@@ -5,13 +5,14 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Key } from "../models/regkey.models.js";
 import { generateFaceEncoding } from "../services/faceRecognition.service.js";
 import { Student } from "../models/student.models.js";
+import {Department} from "../models/dept.models.js"
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 
 
 const updatePersonalDetails = asyncHandler(async (req, res) => {
     // TODO: Implement updatePersonalDetails
-    const student = Student.findById(req.user?._id)
+    const student = await Student.findById(req.user?._id).select("-refershToken -password -faceEmbedding")
 
     if(!student){
         throw new ApiError(500, "Data not found")
@@ -30,7 +31,7 @@ const updatePersonalDetails = asyncHandler(async (req, res) => {
 
     return res
     .status(200)
-    .json(new ApiResponse(200, user, "Profile updated successfully."));
+    .json(new ApiResponse(200, student, "Profile updated successfully."));
 });
 
 const selfRegisterStudent = asyncHandler(async (req, res) => {
@@ -60,7 +61,7 @@ const selfRegisterStudent = asyncHandler(async (req, res) => {
     const dept = await Department.findOne({deptId})
 
     const isActiveStudentKey = await Key.findOne({
-        departmentId: deptId,
+        departmentId: dept?._id,
         "studentKeys.key": phoneNumber,
         "studentKeys.isActive": true,
       });

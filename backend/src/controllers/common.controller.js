@@ -138,19 +138,18 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid role. Must be 'Admin', 'Student', or 'Faculty'");
     }
 
-    const user = await userRole.findOne({email}).select("-password -refreshToken -faceEmbedding")
+    const user = await userRole.findOne({email}).select("-password -refreshToken ")
     const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     const cameraLocalPath = req.file?.path
     if(!cameraLocalPath){
         throw new ApiError(400,"Camera Image is required")
     }
-    const faceEmbeddings = user.faceEmbedding;
-    // console.log(faceEmbeddings)
+    const faceEmbeddings = user.faceEmbedding
     const options = {
         httpOnly: true,
         secure: true,
     }
-        if(verifyAndRespond(cameraLocalPath,faceEmbeddings)){
+        if(await verifyAndRespond(cameraLocalPath,faceEmbeddings)===true){
             return res
             .status(200)
             .cookie("accessToken",accessToken,options)
@@ -190,6 +189,7 @@ const logout = asyncHandler(async (req, res) => {
     // TODO: Implement logout
     const user = req.user?.role
     const userRole = roleModelMap[user]
+    console.log(userRole)
     const result = await userRole.findByIdAndUpdate(
         req.user._id,
         {
@@ -285,6 +285,7 @@ const resetPassword = asyncHandler(async(req,res)=>{
 
 const userDetails = asyncHandler(async(req,res)=>{
     const userRole = roleModelMap[req.user?.role]
+    // console.log(req.user?._id)
     let result;
     try {
         result = await userRole.findById(req.user?._id).select("-password -refreshToken -faceEmbedding")

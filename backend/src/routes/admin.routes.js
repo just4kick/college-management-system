@@ -39,6 +39,7 @@ import {
 import {upload} from "../middlewares/multer.middleware.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 import {verifyAdmin} from "../middlewares/verifyAdmin.middleware.js"
+import {hodExists} from "../middlewares/oneHod.middleware.js"
 const router = Router()
 
 
@@ -66,7 +67,7 @@ router.route("/create-dept").post(createDepartment)
 router.route("/view-dept").get(viewAllDepartments)
 router.route("/update-course").patch(addCourse)
 router.route("/delete-dept").delete(deleteDepartment)
-router.route("/assign-hod").patch(assignHOD)
+router.route("/assign-hod").patch(hodExists,assignHOD)
 router.route("/revoke-hod").patch(revokeHOD)
 router.route("/register-faculty").post(
     upload.fields([
@@ -101,6 +102,7 @@ router.route("/generate-keys").post(generateRegistrationKey)
 router.route("/view-keys").get(viewRegistrationKey)
 router.route("/revoke-keys").patch(revokeRegistrationKey)
 router.route("/grant-keys").patch(grantRegistrationKey)
+router.route("/add-keys").patch(addRegistrationKey)
 router.route("/remove-keys").patch(removeRegistrationKey)
 router.route("/add-notice").post(addNoticeByAdmin)
 router.route("/remove-notice").delete(removeNoticeByAdmin)

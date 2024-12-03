@@ -38,7 +38,7 @@ router.route("/login-request").post(loginRequestOtp)
 router.route("/login-verify").post(verifyJWT,loginVerifyOtp)
 router.route("/face-login").post(upload.single("cameraImage"),faceRecognitionLogin)
 router.route("/change-password").post(verifyJWT,changeCurrentPassword)
-router.route("/logout").post(logout)
+router.route("/logout").post(verifyJWT,logout)
 router.route("/request-forgot-pass").post(requestForgotPassword),
 router.route("/reset-password").patch(verifyJWT,resetPassword)
 router.route("/user-detail").get(verifyJWT,userDetails)
