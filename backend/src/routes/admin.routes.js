@@ -40,6 +40,8 @@ import {upload} from "../middlewares/multer.middleware.js"
 import {verifyJWT} from "../middlewares/auth.middleware.js"
 import {verifyAdmin} from "../middlewares/verifyAdmin.middleware.js"
 import {hodExists} from "../middlewares/oneHod.middleware.js"
+import {addImages,
+    removeImage,} from "../controllers/gallery.controller.js"
 const router = Router()
 
 
@@ -116,5 +118,6 @@ router.route("/change-password").post(changeCurrentPassword)
 router.route("/reset-password").patch(resetPassword)
 router.route("/user-detail").get(userDetails)
 router.route("/update-face").patch(upload.single("cameraImage"),updateFaceData)
-
+router.route("/add-images").post(upload.array("images"),addImages)
+router.route("/remove-image/:id").delete(removeImage)
 export default router

@@ -31,9 +31,9 @@ const Topbar = () => {
           <img
             src="logo_msit.png" // Replace with your logo's path
             alt="College Logo"
-            className="h-8 w-8"
+            className="h-10 w-10"
           />
-          <span className="font-semibold text-primary text-sm">
+          <span className="font-semibold text-primary text-lg">
             IIT-Anandapur
           </span>
         </div>

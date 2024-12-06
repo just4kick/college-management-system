@@ -29,6 +29,22 @@ const Menubar = () => {
               Departments
             </a>
           </li>
+          <li>
+            <a
+              href="/"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              Team
+            </a>
+          </li>
+          <li>
+            <a
+              href="/"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              Gallery
+            </a>
+          </li>
         </ul>
         <ul className="flex items-center gap-4">
           <li>
