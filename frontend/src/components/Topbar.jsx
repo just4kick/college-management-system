@@ -29,7 +29,7 @@ const Topbar = () => {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img
-            src="logo_msit.png" // Replace with your logo's path
+            src="/logo_msit.png" // Replace with your logo's path
             alt="College Logo"
             className="h-10 w-10"
           />

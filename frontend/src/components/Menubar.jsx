@@ -31,7 +31,7 @@ const Menubar = () => {
           </li>
           <li>
             <a
-              href="/"
+              href="/team"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               Team
@@ -39,7 +39,7 @@ const Menubar = () => {
           </li>
           <li>
             <a
-              href="/"
+              href="/gallery"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               Gallery
@@ -57,7 +57,7 @@ const Menubar = () => {
           </li>
           <li>
             <a
-              href="/register"
+              href="/signup"
               className="text-muted-foreground hover:text-primary transition-colors"
             >
               Register
