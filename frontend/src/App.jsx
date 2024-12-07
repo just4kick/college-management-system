@@ -107,6 +107,7 @@ export default function App() {
           />
         </Routes>
         <Footer />
+        
       </Router>
     </ThemeProvider>
   );
