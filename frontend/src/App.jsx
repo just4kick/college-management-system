@@ -10,9 +10,10 @@ import Gallery from "@/pages/Gallery";
 import LoginPage from "@/pages/Login";
 import SignupPage from "@/pages/Signup";
 import Team from "@/pages/Team";
-import AdminDashboard from "@/pages/AdminDashboard";
-import FacultyDashboard from "@/pages/FacultyDashboard";
-import StudentDashboard from "@/pages/StudentDashboard";
+// dashboards
+import AdminDashboard from "@/pages/DashBoard/AdminDashboard";
+import FacultyDashboard from "@/pages/DashBoard/FacultyDashboard";
+import StudentDashboard from "@/pages/DashBoard/StudentDashboard";
 import Footer from "@/components/Footer";
 import Topbar from "./components/Topbar";
 import './App.css'
