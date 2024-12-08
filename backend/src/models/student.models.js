@@ -34,7 +34,7 @@ const studentSchema = new mongoose.Schema({
     type: String,
     default:"student"
   },
-  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
+  
     course: { type: String, required: true }, 
     year: { type: Number, required: true },
     session: String,

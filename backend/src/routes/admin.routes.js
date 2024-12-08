@@ -45,6 +45,7 @@ import {addImages,
 const router = Router()
 
 
+
 router.route("/login-request").post(loginRequestOtp)
 router.route("/face-login").post(upload.single("cameraImage"),faceRecognitionLogin)
 router.route("/request-forgot-pass").post(requestForgotPassword),
