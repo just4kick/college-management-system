@@ -5,13 +5,13 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function InfoCards() {
-  // Array of people with their details
+
   const people = [
     {
       id: 1,
       designation: "Principal",
-      logo: "/logo_msit.png", // Replace with the logo image
-      image: "/nba.png", // Replace with the portrait image
+      logo: "/mgd.jpg", 
+      image: "/mgd.jpg", 
       name: "Dr. A. K. Sharma",
       message:
         "Welcome to our institution! We strive to provide a holistic education for the leaders of tomorrowWelcome to our institution! We strive to provide a holistic education for the leaders of tomorrowWelcome to our institution! We strive to provide a holistic education for the leaders of tomorrow.",
@@ -19,8 +19,8 @@ export function InfoCards() {
     {
       id: 2,
       designation: "Director",
-      logo: "/logo_msit.png", // Replace with the logo image
-      image: "/nba.png", // Replace with the portrait image
+      logo: "/dir.png", 
+      image: "/dir.png",
       name: "Prof. R. Singh",
       message:
         "Our mission is to foster an environment of academic excellence and innovationOur mission is to foster an environment of academic excellence and innovationOur mission is to foster an environment of academic excellence and innovationOur mission is to foster an environment of academic excellence and innovation.",
@@ -28,8 +28,8 @@ export function InfoCards() {
     {
       id: 3,
       designation: "Vice-Principal",
-      logo: "/logo_msit.png", // Replace with the logo image
-      image: "/nba.png", // Replace with the portrait image
+      logo: "/mgd.jpg", 
+      image: "/mgd.jpg", 
       name: "Ms. P. Roy",
       message:
         "Education is the key to unlocking potential. I am here to guide you on this incredible journey.Education is the key to unlocking potential. I am here to guide you on this incredible journey.Education is the key to unlocking potential. I am here to guide you on this incredible journey.",
@@ -38,11 +38,11 @@ export function InfoCards() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* 3-Column Layout */}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {people.map((person) => (
           <HoverCard key={person.id}>
-            {/* Hover Card Trigger */}
+  
             <HoverCardTrigger asChild>
               <Card className="flex flex-col items-center justify-center p-4 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg">
                 <img
@@ -56,7 +56,6 @@ export function InfoCards() {
               </Card>
             </HoverCardTrigger>
 
-            {/* Hover Card Content */}
             <HoverCardContent
               className="w-80 p-4 bg-white dark:bg-gray-800 shadow-md rounded-lg"
             >

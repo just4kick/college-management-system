@@ -14,21 +14,20 @@ import {
 import Webcam from 'react-webcam'
 
 export default function SignupCard() {
-  const [userType, setUserType] = useState('faculty') // 'faculty' or 'student'
-  const [cameraActive, setCameraActive] = useState(false) // Controls webcam activation
+  const [userType, setUserType] = useState('faculty')
+  const [cameraActive, setCameraActive] = useState(false)
 
-  // Faculty data state
   const [facultyData, setFacultyData] = useState({
     fullName: "",
     email: "",
     phoneNumber: "",
     department: "",
-    avatar: "", // Avatar image from file upload
-    cameraImage: "", // Image from camera
+    avatar: "", 
+    cameraImage: "", 
     password: "",
   })
 
-  // Student data state
+
   const [studentData, setStudentData] = useState({
     fullName: "",
     email: "",
@@ -37,27 +36,25 @@ export default function SignupCard() {
     course: "",
     year: "",
     session: "",
-    avatar: "", // Avatar image from file upload
-    cameraImage: "", // Image from camera
+    avatar: "", 
+    cameraImage: "", 
     password: "",
   })
 
   // Reference for webcam
   const webcamRef = useRef(null)
 
-  // Handle Faculty registration form submission
   const handleFacultySubmit = (e) => {
     e.preventDefault()
     console.log('Faculty Data:', facultyData)
   }
 
-  // Handle Student registration form submission
   const handleStudentSubmit = (e) => {
     e.preventDefault()
     console.log('Student Data:', studentData)
   }
 
-  // Capture image from webcam
+  // Capturing  image from webcam
   const captureImage = useCallback(() => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot()

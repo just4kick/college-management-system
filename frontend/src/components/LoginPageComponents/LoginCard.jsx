@@ -25,13 +25,13 @@ import Webcam from 'react-webcam'
 export function LoginCard() {
   const [loginMethod, setLoginMethod] = useState('otp')
   const [showPassword, setShowPassword] = useState(false)
-  const [imageMethod, setImageMethod] = useState('upload') // 'upload' or 'capture'
+  const [imageMethod, setImageMethod] = useState('upload') 
   const [cameraActive, setCameraActive] = useState(false)
   const [capturedImage, setCapturedImage] = useState(null)
-  const [imageFileName, setImageFileName] = useState("") // Stores random filename
+  const [imageFileName, setImageFileName] = useState("") 
   const webcamRef = useRef(null)
 
-  // Handle login method toggle
+
   const toggleLoginMethod = () => {
     if (loginMethod === 'otp') {
       setLoginMethod('face')
@@ -41,23 +41,22 @@ export function LoginCard() {
   }
 
   useEffect(() => {
-    // Reset camera and image when switching to OTP login
+    
     if (loginMethod === 'otp') {
       setCapturedImage(null) // Reset captured image
       setImageFileName("") // Reset image filename
       setCameraActive(false) // Deactivate camera
     }
-  }, [loginMethod]); // Run this effect whenever loginMethod changes
+  }, [loginMethod]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword)
   }
 
-  // Handle image method selection (Upload or Capture)
   const handleImageMethodChange = (method) => {
     setImageMethod(method)
-    setCapturedImage(null) // Reset captured image
-    setImageFileName("") // Reset filename
+    setCapturedImage(null) 
+    setImageFileName("") 
     if (method === 'capture') {
       setCameraActive(true)
     } else {
@@ -69,18 +68,17 @@ export function LoginCard() {
     return `capturedImage${Math.floor(Math.random() * 10000)}.jpg`
   }
 
-  // Capture image via webcam
   const captureImage = useCallback(() => {
     if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot() // Capture image
-      const randomFileName = generateRandomFileName() // Generate random filename
-      setCapturedImage(imageSrc) // Store captured image
-      setImageFileName(randomFileName) // Save generated filename
+      const imageSrc = webcamRef.current.getScreenshot() 
+      const randomFileName = generateRandomFileName() 
+      setCapturedImage(imageSrc) 
+      setImageFileName(randomFileName) 
     }
   }, [webcamRef])
 
   const handleSubmit = (e) => {
-    e.preventDefault() // Prevent page refresh on form submission
+    e.preventDefault() 
   }
 
   return (

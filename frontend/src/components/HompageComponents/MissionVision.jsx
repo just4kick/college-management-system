@@ -4,9 +4,9 @@ import React from "react";
 const MissionVision = () => {
   return (
     <div className="container mx-auto py-8">
-      {/* Grid container with 2 columns */}
+  
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Mission Section */}
+
         <div>
           <h2 className="text-2xl text-center font-semibold text-gray-800 dark:text-gray-200">
             Our Mission
@@ -24,7 +24,7 @@ const MissionVision = () => {
           </p>
         </div>
 
-        {/* Vision Section */}
+
         <div>
           <h2 className="text-2xl text-center font-semibold text-gray-800 dark:text-gray-200">
             Our Vision

@@ -16,6 +16,7 @@
     "@radix-ui/react-slider": "^1.2.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@shadcn/ui": "^0.0.4",
+    "@tanstack/react-table": "^8.20.5",
     "@vitejs/plugin-vue": "^5.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

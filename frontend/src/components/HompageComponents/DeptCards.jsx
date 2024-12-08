@@ -94,7 +94,7 @@ export function DeptCards() {
                       ))}
                     </div>
                   </div>
-                  {/* Navigation Buttons */}
+ 
                   <button
                     onClick={() => emblaInstance && emblaInstance.scrollPrev()}
                     disabled={buttonsDisabled.prev}

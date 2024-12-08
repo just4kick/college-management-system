@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button"; // Use ShadCN's button component
+import { Button } from "@/components/ui/button"; 
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
 
@@ -18,7 +18,7 @@ const Topbar = () => {
     };
 
     updateTime();
-    const timer = setInterval(updateTime, 60000); // Update every minute
+    const timer = setInterval(updateTime, 60000); 
 
     return () => clearInterval(timer);
   }, []);
@@ -29,7 +29,7 @@ const Topbar = () => {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img
-            src="/logo_msit.png" // Replace with your logo's path
+            src="/logo_msit.png" 
             alt="College Logo"
             className="h-10 w-10"
           />

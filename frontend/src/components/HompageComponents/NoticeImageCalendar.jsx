@@ -23,7 +23,7 @@ export function NoticeImageCalendar() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row gap-6">
-        {/* Left Section: Image and Paragraph */}
+
         <div className="flex flex-col items-center w-full md:w-1/3">
           <Card className="h-full w-full bg-white dark:bg-gray-800">
             <CardHeader>
@@ -45,7 +45,7 @@ export function NoticeImageCalendar() {
           </Card>
         </div>
 
-        {/* Center Section: Calendar */}
+   
         <div className="flex justify-center w-full md:w-1/3">
           <Card className="h-full w-full bg-white dark:bg-gray-800">
             <CardHeader>
@@ -59,7 +59,7 @@ export function NoticeImageCalendar() {
           </Card>
         </div>
 
-        {/* Right Section: Notice Board */}
+
         <div className="w-full md:w-1/3">
           <Card className="h-full w-full bg-white dark:bg-gray-800">
             <CardHeader>

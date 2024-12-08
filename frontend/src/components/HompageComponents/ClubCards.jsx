@@ -78,7 +78,7 @@ function ClubCard({ club }) {
               ))}
             </div>
           </div>
-          {/* Navigation Buttons */}
+ 
           <button
             onClick={onPrevClick}
             disabled={prevDisabled}

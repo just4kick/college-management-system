@@ -8,7 +8,7 @@ import DeptCards from "@/components/HompageComponents/DeptCards";
 import ClubCards from "@/components/HompageComponents/ClubCards";
 const Homepage = () => {
   return (
-    <div>
+    <div >
       <Menubar/>
       <FullWidthCarousel />
       <NoticeImageCalendar />
