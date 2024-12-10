@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import MainLayout from "@/layouts/MainLayout";
-import DashboardLayout from "@/layouts/DashboardLayout";
 import Homepage from "@/pages/Homepage";
 import About from "@/pages/About";
 import Departments from "@/pages/Departments";
@@ -10,10 +9,12 @@ import Gallery from "@/pages/Gallery";
 import LoginPage from "@/pages/Login";
 import SignupPage from "@/pages/Signup";
 import Team from "@/pages/Team";
+
 // dashboards
-import AdminDashboard from "@/pages/DashBoard/AdminDashboard";
-import FacultyDashboard from "@/pages/DashBoard/FacultyDashboard";
-import StudentDashboard from "@/pages/DashBoard/StudentDashboard";
+
+import AdminDashboardPage from "@/pages/DashBoard/AdminDashboardPage";
+import FacultyDashboardPage from "@/pages/DashBoard/FacultyDashboardPage";
+import StudentDashboardPage from "@/pages/DashBoard/StudentDashboardPage";
 import Footer from "@/components/Footer";
 import Topbar from "./components/Topbar";
 import './App.css'
@@ -83,27 +84,27 @@ export default function App() {
 
           {/* DashboardLayout Routes */}
           <Route
-            path="/admin/dashboard"
+            path="dashboard/admin"
             element={
-              <DashboardLayout>
-                <AdminDashboard />
-              </DashboardLayout>
+              
+                <AdminDashboardPage />
+              
             }
           />
           <Route
-            path="/faculty/dashboard"
+            path="dashboard/faculty"
             element={
-              <DashboardLayout>
-                <FacultyDashboard />
-              </DashboardLayout>
+              
+                <FacultyDashboardPage />
+              
             }
           />
           <Route
-            path="/student/dashboard"
+            path="dashboard/student"
             element={
-              <DashboardLayout>
-                <StudentDashboard />
-              </DashboardLayout>
+              
+                <StudentDashboardPage />
+              
             }
           />
         </Routes>
