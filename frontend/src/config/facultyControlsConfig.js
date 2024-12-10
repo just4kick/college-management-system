@@ -9,7 +9,7 @@ export const facultyControls = [
   {
     label: "Profile Controls",
     icon: Users,
-    items: ["updateFacultyDetails", "logout", "changePassword", "userDetails", "updateFaceData"],
+    items: ["updateFacultyDetails", "changePassword", "userDetails", "updateFaceData"],
   },
   {
     label: "Notice Controls",

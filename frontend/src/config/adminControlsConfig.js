@@ -11,6 +11,8 @@ import RegisterFaculty from "@/components/Dashboard/Faculty/RegisterFaculty";
 import DeleteFaculty from "@/components/Dashboard/Faculty/DeleteFaculty";
 import SearchFaculty from "@/components/Dashboard/Faculty/SearchFaculty";
 import ViewFacultyDeptWise from "@/components/Dashboard/Faculty/ViewFacultyDeptWise";
+import AssignHOD from "@/components/Dashboard/Faculty/AssignHOD";
+import RevokeHOD from "@/components/Dashboard/Faculty/RevokeHOD";
 import RegisterStudent from "@/components/Dashboard/Student/RegisterStudent";
 import DeleteStudent from "@/components/Dashboard/Student/DeleteStudent";
 import SearchStudent from "@/components/Dashboard/Student/SearchStudent";
@@ -32,7 +34,7 @@ const AdminControlConfig = {
         { label: "Create Admin", component: CreateAdminForm },
         { label: "Change Password", component: ChangePassword },
         { label: "User Details", component: UserDetails },
-        { label: "Update Face Data", component: UpdateFaceData },
+        { label: "Update FaceData", component: UpdateFaceData },
       ],
     },
     {
@@ -53,6 +55,8 @@ const AdminControlConfig = {
         { label: "Delete Faculty", component: DeleteFaculty },
         { label: "Search Faculty", component: SearchFaculty },
         { label: "View Faculty (Dept-wise)", component: ViewFacultyDeptWise },
+        { label: "Assign HOD", component: AssignHOD },
+        { label: "Revoke HOD", component: RevokeHOD },
       ],
     },
     {
