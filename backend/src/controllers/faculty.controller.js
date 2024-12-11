@@ -64,58 +64,41 @@ const viewDeptStudents = asyncHandler(async (req, res) => {
 });
 // .select("-password -refreshToken -faceEmbedding");
 const updateFacultyDetails = asyncHandler(async (req, res) => {
-
-
-  const { fullName, email, phoneNumber } = req.body;
-  const allowedFields = ["fullName", "email", "phoneNumber"];
-  const invalidFields = Object.keys(req.body).filter(
-    (key) => !allowedFields.includes(key)
-  );
-
-  if (invalidFields.length > 0) {
-    return res
-      .status(400)
-      .json(
-        new ApiResponse(400, {}, `Invalid fields: ${invalidFields.join(", ")}`)
-      );
-  }
-
-  const fieldsToUpdate = {};
-  if (fullName) fieldsToUpdate.fullName = fullName;
-  if (email) fieldsToUpdate.email = email;
-  if (phoneNumber) fieldsToUpdate.phoneNumber = phoneNumber;
-
-  console.log("Fields to Update:", fieldsToUpdate); // Debugging log
-
-  if (Object.keys(fieldsToUpdate).length === 0) {
-    return res
-      .status(400)
-      .json(new ApiResponse(400, {}, "No valid fields provided for update."));
-  }
-
   try {
-    const updatedFaculty = await Faculty.findByIdAndUpdate(
-      req.user?._id,
-      { $set: fieldsToUpdate },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedFaculty) {
-      return res
-        .status(404)
-        .json(new ApiResponse(404, {}, "Faculty not found."));
+    // Fetch the faculty record using the user ID
+    const faculty = await Faculty.findById(req.user?._id).select("-refreshToken -password");
+    if (!faculty) {
+      throw new ApiError(404, "Faculty data not found.");
     }
+
+    // Handle avatar file upload if provided
+    const avatarLocalPath = req.file?.path;
+    if (avatarLocalPath) {
+      const avatar = await uploadOnCloudinary(avatarLocalPath);
+      if (avatar) {
+        faculty.avatar = avatar.url; // Update the avatar URL
+      }
+    }
+
+    // Dynamically update fields from the request body
+    Object.keys(req.body).forEach((key) => {
+      if (req.body[key] !== undefined && key !== "avatar") {
+        faculty[key] = req.body[key];
+      }
+    });
+
+    // Save the updated faculty record
+    await faculty.save();
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(200, updatedFaculty, "Profile updated successfully.")
-      );
+      .json(new ApiResponse(200, faculty, "Faculty profile updated successfully."));
   } catch (error) {
     console.error("Error updating faculty:", error);
-    throw new ApiError(500, "Failed to update profile.");
+    throw new ApiError(500, "Failed to update faculty profile.");
   }
 });
+
 
 const selfRegisterFaculty = asyncHandler(async (req, res) => {
   // TODO: Implement viewDeptStudents

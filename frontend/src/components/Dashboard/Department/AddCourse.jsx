@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AddCourses() {
   const [formData, setFormData] = useState({
@@ -8,6 +9,8 @@ export default function AddCourses() {
     courses: [""],
   });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Handle change in input fields
   const handleChange = (e) => {
@@ -34,19 +37,37 @@ export default function AddCourses() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const { deptId, courses } = formData;
+
+    // Clear previous success message
+    setSuccess("");
 
     if (!deptId || courses.some((course) => course.trim() === "")) {
       setError("All fields are required, and courses cannot be empty.");
       return;
     }
 
-    // Reset error and log formData (replace with actual API call)
     setError("");
-    console.log("Courses Data Submitted:", formData);
-    alert("Courses successfully added.");
+    setLoading(true); // Set loading to true
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Courses Data Submitted:", formData);
+
+      // Show success message
+      setSuccess("Courses successfully added.");
+      setFormData({
+        deptId: "",
+        courses: [""],
+      }); // Reset form data
+    } catch (error) {
+      console.error("Error submitting courses:", error);
+    } finally {
+      setLoading(false); // Reset loading state
+    }
   };
 
   return (
@@ -56,6 +77,7 @@ export default function AddCourses() {
           Add Courses to Department
         </h1>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+        {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Department ID */}
           <div className="w-full">
@@ -110,8 +132,12 @@ export default function AddCourses() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Add Courses
+          <Button
+            type="submit"
+            className="w-full mt-6 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? <Spinner className="w-5 h-5 animate-spin" /> : "Add Courses"}
           </Button>
         </form>
       </div>

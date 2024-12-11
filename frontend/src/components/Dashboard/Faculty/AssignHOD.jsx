@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input"; // Assuming you have a styled Input component
 import { Button } from "@/components/ui/button"; // Assuming you have a styled Button component
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
+import { Label } from "@/components/ui/label"; // Assuming you have a Label component
 
 export default function AssignHOD() {
   const [formData, setFormData] = useState({
@@ -9,6 +11,7 @@ export default function AssignHOD() {
   });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   // Handle input field changes
   const handleChange = (e) => {
@@ -28,9 +31,14 @@ export default function AssignHOD() {
     }
 
     setError(""); // Reset error message
+    setIsLoading(true); // Start loading
 
-
-    
+    // Simulate an API request with a timeout (replace with actual API call)
+    setTimeout(() => {
+      setIsLoading(false); // Stop loading
+      setSuccessMessage("HOD assigned successfully!"); // Show success message
+      setFormData({ email: "", deptId: "" }); // Reset form data
+    }, 2000); // Simulate a 2-second request delay
   };
 
   return (
@@ -52,12 +60,9 @@ export default function AssignHOD() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
           <div className="w-full">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <Label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Faculty Email
-            </label>
+            </Label>
             <Input
               type="email"
               id="email"
@@ -71,12 +76,9 @@ export default function AssignHOD() {
 
           {/* Department ID Field */}
           <div className="w-full">
-            <label
-              htmlFor="deptId"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <Label htmlFor="deptId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Department ID
-            </label>
+            </Label>
             <Input
               type="text"
               id="deptId"
@@ -89,8 +91,12 @@ export default function AssignHOD() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Assign HOD
+          <Button type="submit" className="w-full mt-6" disabled={isLoading}>
+            {isLoading ? (
+              <Spinner className="w-5 h-5 mr-2 animate-spin" />
+            ) : (
+              "Assign HOD"
+            )}
           </Button>
         </form>
       </div>

@@ -1,33 +1,23 @@
-import { GraduationCap, User } from "lucide-react";
+import { UserCog } from "lucide-react";
+import ChangePassword from "@/components/Dashboard/Forms/ChangePassword";
+import UserDetails from "@/components/Dashboard/UserManagement/UserDetails";
+import UpdateFaceData from "@/components/Dashboard/UserManagement/UpdateFaceData";
+import RegisterStudent from "@/components/Dashboard/Student/RegisterStudent";
+import UpdateStudentDetail from "@/components/Dashboard/Student/UpdateStudentDetail";
+const StudentControlConfig = {
+  sidebarControls: [
+    {
+      label: "Student Personal Controls",
+      icon: UserCog,
+      items: [
+        { label: "Self-Register", component: RegisterStudent },
+        { label: "Change Password", component: ChangePassword },
+        { label: "User Details", component: UserDetails },
+        { label: "Update Face Data", component: UpdateFaceData },
+        { label: "Update Details", component: UpdateStudentDetail },
+      ],
+    },
+  ],
+};
 
-export const studentControls = [
-  {
-    label: "Registration & Profile",
-    icon: User,
-    items: [
-      "selfRegisterStudent",  // Endpoint for self-registration
-      "updatePersonalDetails",  // Endpoint for updating personal details
-      "updateFaceData",  // Endpoint for updating face data
-    ],
-  },
-  {
-    label: "Login & Security",
-    icon: GraduationCap,
-    items: [
-      "loginRequestOtp",  // Endpoint for OTP request
-      "loginVerifyOtp",  // Endpoint for OTP verification
-      "faceRecognitionLogin",  // Endpoint for face recognition login
-      "changeCurrentPassword",  // Endpoint to change the password
-      "logout",  // Endpoint to logout
-      "requestForgotPassword",  // Endpoint to request forgot password
-      "resetPassword",  // Endpoint to reset password
-    ],
-  },
-  {
-    label: "Student Information",
-    icon: GraduationCap,
-    items: [
-      "userDetails",  // Endpoint to fetch user details
-    ],
-  },
-];
+export default StudentControlConfig;

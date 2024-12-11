@@ -1,10 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 export default function UserDetail() {
   const [userData, setUserData] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);  // Track loading state
+
   const mockData = {
     statusCode: 200,
     data: {
@@ -27,23 +30,26 @@ export default function UserDetail() {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      setIsLoading(true);  // Set loading state to true when starting to fetch data
       try {
-        // const response = await fetch("/api/user-detail"); // Replace with your API endpoint
-        
-        // const result = await response.json();
-        const result = mockData
-        if (result.success && result.statusCode === 200) {
-          setUserData(result.data);
-          setSuccessMessage(result.message);
-          setErrorMessage("");
-        } else {
-          setErrorMessage("Failed to fetch user data.");
-          setSuccessMessage("");
-        }
+        // Simulate fetching user data (you can replace this with your actual API call)
+        setTimeout(() => {
+          const result = mockData; // Simulating API response
+          if (result.success && result.statusCode === 200) {
+            setUserData(result.data);
+            setSuccessMessage(result.message);
+            setErrorMessage("");
+          } else {
+            setErrorMessage("Failed to fetch user data.");
+            setSuccessMessage("");
+          }
+          setIsLoading(false);  // Set loading state to false after fetching is done
+        }, 2000); // Simulating delay
       } catch (error) {
         console.error("Error fetching user data:", error);
         setErrorMessage("Something went wrong while fetching user data.");
         setSuccessMessage("");
+        setIsLoading(false);  // Set loading state to false if there's an error
       }
     };
 
@@ -51,10 +57,15 @@ export default function UserDetail() {
   }, []);
 
   return (
-    <div className="h-full w-full bg-white dark:bg-gray-800 p-8 shadow-md">
+    <div className="h-full w-full bg-white dark:bg-gray-800 p-8 shadow-md border border-gray-300 dark:border-gray-700 rounded-md">
       <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-gray-100">
         User Details
       </h1>
+
+      {/* Show loading message */}
+      {isLoading && <p className="text-lg text-gray-600 dark:text-gray-400">Loading data...</p>}
+
+      {/* Success or Error Message */}
       {successMessage && (
         <div className="text-green-600 text-lg font-medium mb-6">
           {successMessage}
@@ -65,7 +76,9 @@ export default function UserDetail() {
           {errorMessage}
         </div>
       )}
-      {userData ? (
+
+      {/* Display User Data once it is loaded */}
+      {userData && !isLoading ? (
         <div className="space-y-8">
           <div className="flex items-center space-x-6">
             <img
@@ -108,9 +121,8 @@ export default function UserDetail() {
           </div>
         </div>
       ) : (
-        <p className="text-lg text-gray-600 dark:text-gray-400">Loading user data...</p>
+        !isLoading && <p className="text-lg text-gray-600 dark:text-gray-400">No user data available.</p>
       )}
     </div>
   );
-
 }

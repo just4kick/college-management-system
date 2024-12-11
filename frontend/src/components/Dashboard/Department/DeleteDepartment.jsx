@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function DeleteDepartment() {
   const [deptId, setDeptId] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Handle input change
   const handleChange = (e) => {
@@ -13,7 +15,7 @@ export default function DeleteDepartment() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!deptId.trim()) {
@@ -22,13 +24,21 @@ export default function DeleteDepartment() {
       return;
     }
 
-    // Simulate deletion request (replace with actual API call)
-    console.log(`Department with ID: ${deptId} deleted.`);
     setError("");
-    setSuccess(`Department with ID: ${deptId} successfully deleted.`);
+    setLoading(true);
 
-    // Clear the input field
-    setDeptId("");
+    try {
+      // Simulate deletion request (replace with actual API call)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log(`Department with ID: ${deptId} deleted.`);
+      setSuccess(`Department with ID: ${deptId} successfully deleted.`);
+      setDeptId(""); // Clear the input field
+    } catch (err) {
+      console.error("Error deleting department:", err);
+      setError("An error occurred while deleting the department.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,8 +70,12 @@ export default function DeleteDepartment() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Delete Department
+          <Button
+            type="submit"
+            className="w-full mt-6 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? <Spinner className="w-5 h-5 animate-spin" /> : "Delete Department"}
           </Button>
         </form>
       </div>

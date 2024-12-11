@@ -19,12 +19,9 @@ import SearchStudent from "@/components/Dashboard/Student/SearchStudent";
 import ViewStudentDeptWise from "@/components/Dashboard/Student/ViewStudentDeptWise";
 import GenerateRegistrationKey from "@/components/Dashboard/RegistrationKeys/GenerateKey";
 import ViewRegistrationKey from "@/components/Dashboard/RegistrationKeys/ViewKeys";
-import RevokeRegistrationKey from "@/components/Dashboard/RegistrationKeys/RevokeKey";
-import GrantRegistrationKey from "@/components/Dashboard/RegistrationKeys/GrantKey";
 import AddNotice from "@/components/Dashboard/Notice/AddNotice";
-import RemoveNotice from "@/components/Dashboard/Notice/RemoveNotice";
 import ViewNotices from "@/components/Dashboard/Notice/ViewNotices";
-
+import UpdateFacultyDetails from "@/components/Dashboard/Faculty/UpdateFacultyDetail";
 const AdminControlConfig = {
   sidebarControls: [
     {
@@ -57,6 +54,7 @@ const AdminControlConfig = {
         { label: "View Faculty (Dept-wise)", component: ViewFacultyDeptWise },
         { label: "Assign HOD", component: AssignHOD },
         { label: "Revoke HOD", component: RevokeHOD },
+        { label: "Update Faculty Details", component: UpdateFacultyDetails },
       ],
     },
     {
@@ -75,8 +73,6 @@ const AdminControlConfig = {
       items: [
         { label: "Generate Key", component: GenerateRegistrationKey },
         { label: "View Keys", component: ViewRegistrationKey },
-        { label: "Revoke Key", component: RevokeRegistrationKey },
-        { label: "Grant Key", component: GrantRegistrationKey },
       ],
     },
     {
@@ -84,7 +80,6 @@ const AdminControlConfig = {
       icon: Bell,
       items: [
         { label: "Add Notice", component: AddNotice },
-        { label: "Remove Notice", component: RemoveNotice },
         { label: "View Notices", component: ViewNotices },
       ],
     },

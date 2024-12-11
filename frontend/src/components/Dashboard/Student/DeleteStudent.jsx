@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input"; // Assuming you have a styled Input component
 import { Button } from "@/components/ui/button"; // Assuming you have a styled Button component
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component for loading
 
 // Mock Data: You can replace this with actual data from your API in the future
 const students = [
@@ -14,6 +15,7 @@ export default function DeleteStudent() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [studentsData, setStudentsData] = useState(students); // Store the students
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   // Handle input change for email
   const handleChange = (e) => {
@@ -33,12 +35,17 @@ export default function DeleteStudent() {
       return;
     }
 
+    setIsLoading(true); // Start loading spinner
+
     // Simulate deleting the student
-    const updatedStudents = studentsData.filter((student) => student.email !== email);
-    setStudentsData(updatedStudents);
-    setEmail("");
-    setError("");
-    setSuccessMessage("Student deleted successfully.");
+    setTimeout(() => {
+      const updatedStudents = studentsData.filter((student) => student.email !== email);
+      setStudentsData(updatedStudents);
+      setEmail("");
+      setError("");
+      setSuccessMessage("Student deleted successfully.");
+      setIsLoading(false); // Stop loading spinner
+    }, 2000); // Simulate 2 seconds delay
   };
 
   return (
@@ -78,9 +85,11 @@ export default function DeleteStudent() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Delete Student
-          </Button>
+          
+            <Button type="submit" className="w-full mt-2" disabled={isLoading}>
+              {isLoading ? <Spinner /> : "Delete Student"}
+            </Button>
+          
         </form>
 
         {/* Success message after deletion */}

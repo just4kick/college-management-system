@@ -2,6 +2,7 @@ import React, { useRef, useState, useCallback } from "react";
 import Webcam from "react-webcam";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
 
 export default function UpdateFaceData() {
   const webcamRef = useRef(null);
@@ -9,11 +10,14 @@ export default function UpdateFaceData() {
   const [capturedImage, setCapturedImage] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for submit button
+  const [successMessage, setSuccessMessage] = useState(""); // Success message
 
   const startCamera = () => {
     setIsCameraActive(true);
     setCapturedImage(null);
     setUploadedImage(null);
+    setSuccessMessage(""); // Clear success message when starting the camera
   };
 
   const stopCamera = () => {
@@ -52,10 +56,17 @@ export default function UpdateFaceData() {
     }
 
     const imageData = capturedImage || uploadedImage;
+    setIsSubmitting(true); // Start loading spinner
     console.log("Image Data Submitted:", imageData);
 
-    setError("");
-    alert("Image successfully submitted.");
+    setTimeout(() => {
+      setIsSubmitting(false); // Stop loading spinner
+      setError(""); // Clear error if any
+      setCapturedImage(null); // Reset captured image
+      setUploadedImage(null); // Reset uploaded image
+      stopCamera(); // Turn off camera after submit
+      setSuccessMessage("Image successfully submitted."); // Success message
+    }, 2000); // Simulating an API call with delay
   };
 
   return (
@@ -65,6 +76,7 @@ export default function UpdateFaceData() {
           Update Face Data
         </h1>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+        {successMessage && <div className="text-green-500 text-sm mb-4">{successMessage}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Webcam Section */}
@@ -129,8 +141,15 @@ export default function UpdateFaceData() {
               <Input type="file" accept="image/*" onChange={handleImageUpload} />
             </div>
           </div>
-          <Button type="submit" className="w-full mt-6">
-            Submit Image
+          <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <div className="flex justify-center items-center">
+                <Spinner size="sm" className="mr-2" />
+                Submitting...
+              </div>
+            ) : (
+              "Submit Image"
+            )}
           </Button>
         </form>
       </div>

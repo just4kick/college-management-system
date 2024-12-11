@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input"; // Assuming you have a styled Input component
 import { Button } from "@/components/ui/button"; // Assuming you have a styled Button component
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component for loading
 
 // Mock Data: You can replace this with actual data from your API in the future
 const students = [
@@ -13,6 +14,7 @@ export default function SearchStudent() {
   const [email, setEmail] = useState("");
   const [student, setStudent] = useState(null);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
   // Handle email input change
   const handleChange = (e) => {
@@ -22,18 +24,26 @@ export default function SearchStudent() {
   // Handle search for student by email
   const handleSearch = (e) => {
     e.preventDefault();
+    
+    setIsLoading(true); // Start loading spinner
 
-    // Check if student exists in mock data
-    const foundStudent = students.find((student) => student.email.toLowerCase() === email.toLowerCase());
+    // Simulate delay to mimic real API search
+    setTimeout(() => {
+      // Check if student exists in mock data
+      const foundStudent = students.find(
+        (student) => student.email.toLowerCase() === email.toLowerCase()
+      );
 
-    if (!foundStudent) {
-      setError("No student found with this email.");
-      setStudent(null);
-      return;
-    }
+      if (!foundStudent) {
+        setError("No student found with this email.");
+        setStudent(null);
+      } else {
+        setStudent(foundStudent);
+        setError("");
+      }
 
-    setStudent(foundStudent);
-    setError("");
+      setIsLoading(false); // Stop loading spinner
+    }, 1500); // Simulate a 1.5 seconds delay
   };
 
   return (
@@ -68,8 +78,8 @@ export default function SearchStudent() {
           </div>
 
           {/* Search Button */}
-          <Button type="submit" className="w-full mt-6">
-            Search Student
+          <Button type="submit" className="w-full mt-6" disabled={isLoading}>
+            {isLoading ? <Spinner /> : "Search Student"}
           </Button>
         </form>
 
@@ -81,7 +91,7 @@ export default function SearchStudent() {
             </h2>
 
             {/* Displaying Student Information in Table-like Row */}
-            <div className="overflow-x-auto overflow-x-auto mt-4 bg-gray-100 dark:bg-gray-800 rounded-md shadow-md">
+            <div className="overflow-x-auto mt-4 bg-gray-100 dark:bg-gray-800 rounded-md shadow-md">
               <table className="min-w-full bg-white dark:bg-gray-800 rounded-md shadow-md">
                 <thead>
                   <tr>

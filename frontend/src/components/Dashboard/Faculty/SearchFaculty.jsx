@@ -1,34 +1,40 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input"; // Assuming you have a styled Input component
 import { Button } from "@/components/ui/button"; // Assuming you have a styled Button component
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
 
 export default function SearchFaculty() {
   const [email, setEmail] = useState("");
   const [facultyData, setFacultyData] = useState(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state for spinner
 
   // Handle input change
   const handleChange = (e) => {
     setEmail(e.target.value);
   };
 
-  // Simulate fetching faculty data by email
-  const fetchFacultyByEmail = async (email) => {
-    // This should be replaced with your actual API call to get faculty by email.
-    // Simulating a response with mock data
-    const mockData = {
-      email: "faculty@example.com",
-      fullName: "John Doe",
-      phoneNumber: "123-456-7890",
-      avatar: "/path/to/avatar.jpg", // Replace with actual avatar URL
-      department: "Computer Science",
-      role: "faculty",
-    };
+  // Simulate fetching faculty data by email with a delay
+  const fetchFacultyByEmail = (email) => {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        // Replace this with your actual API call.
+        const mockData = {
+          email: "faculty@example.com",
+          fullName: "John Doe",
+          phoneNumber: "123-456-7890",
+          avatar: "/path/to/avatar.jpg",
+          department: "Computer Science",
+          role: "faculty",
+        };
 
-    if (email === mockData.email) {
-      return mockData;
-    }
-    return null;
+        if (email === mockData.email) {
+          resolve(mockData);
+        } else {
+          resolve(null); // Simulate no faculty found
+        }
+      }, 2000); // Simulate a 2-second delay
+    });
   };
 
   // Handle form submission
@@ -40,17 +46,24 @@ export default function SearchFaculty() {
       return;
     }
 
-    // Clear previous error
     setError("");
+    setLoading(true); // Start loading spinner
 
-    // Fetch faculty details by email
-    const result = await fetchFacultyByEmail(email);
+    try {
+      const result = await fetchFacultyByEmail(email);
 
-    if (result) {
-      setFacultyData(result);
-    } else {
-      setFacultyData(null);
-      setError("Faculty member not found.");
+      if (result) {
+        setFacultyData(result);
+        setError("");
+      } else {
+        setFacultyData(null);
+        setError("Faculty member not found.");
+      }
+    } catch (err) {
+      console.error("Error fetching faculty:", err);
+      setError("An error occurred while searching for the faculty member.");
+    } finally {
+      setLoading(false); // Stop loading spinner
     }
   };
 
@@ -61,7 +74,7 @@ export default function SearchFaculty() {
           Search Faculty by Email
         </h1>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-        
+
         {/* Search Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="w-full">
@@ -84,8 +97,12 @@ export default function SearchFaculty() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Search Faculty
+          <Button
+            type="submit"
+            className="w-full mt-6 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? <Spinner className="w-5 h-5 animate-spin" /> : "Search Faculty"}
           </Button>
         </form>
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Webcam from "react-webcam";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component for loading
 
 export default function RegisterStudent() {
   const [formData, setFormData] = useState({
@@ -13,15 +14,16 @@ export default function RegisterStudent() {
     password: "",
     role: "faculty",
     department: "",
-    course:"",
-    year:"",
-    session:"",
+    course: "",
+    year: "",
+    session: "",
   });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [useWebcam, setUseWebcam] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const webcamRef = React.useRef(null);
 
@@ -68,34 +70,38 @@ export default function RegisterStudent() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const { fullName, email, phoneNumber, avatar, password, department, capturedImage } = formData;
+    const { fullName, email, phoneNumber, avatar, password, department, course, year, session, capturedImage } = formData;
 
-    if (!fullName || !email || !phoneNumber || !password || !department || !avatar || !capturedImage) {
+    if (!fullName || !email || !phoneNumber || !password || !department || !course || !year || !session || !avatar || !capturedImage) {
       setError("All fields are required. Please provide both avatar and captured image.");
-      setSuccess("");
+      setSuccessMessage("");
       return;
     }
 
-    // Simulate submission (replace with actual API call)
-    console.log("Faculty Data Submitted:", formData);
-    setError("");
-    setSuccess("Faculty registered successfully.");
-    setFormData({
-      fullName: "",
-      email: "",
-      phoneNumber: "",
-      avatar: null,
-      capturedImage: null,
-      password: "",
-      role: "faculty",
-      department: "",
-      course:"",
-      year:"",
-      session:"",
-    });
-    setAvatarPreview(null);
-    setImagePreview(null);
-    setUseWebcam(false);
+    setError(""); // Reset error
+    setIsLoading(true); // Start loading spinner
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false); // Stop loading
+      setSuccessMessage("Student registered successfully!"); // Show success message
+      setFormData({
+        fullName: "",
+        email: "",
+        phoneNumber: "",
+        avatar: null,
+        capturedImage: null,
+        password: "",
+        role: "faculty",
+        department: "",
+        course: "",
+        year: "",
+        session: "",
+      });
+      setAvatarPreview(null);
+      setImagePreview(null);
+      setUseWebcam(false);
+    }, 2000); // Simulate a 2-second request delay
   };
 
   return (
@@ -104,8 +110,16 @@ export default function RegisterStudent() {
         <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
           Register Student
         </h1>
+
+        {/* Error message */}
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-        {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
+
+        {/* Success message */}
+        {successMessage && (
+          <div className="text-green-500 text-sm mb-4">{successMessage}</div>
+        )}
+
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Full Name */}
           <div className="w-full">
@@ -182,7 +196,8 @@ export default function RegisterStudent() {
               required
             />
           </div>
-          {/* course */}
+
+          {/* Course */}
           <div className="w-full">
             <label
               htmlFor="course"
@@ -194,7 +209,7 @@ export default function RegisterStudent() {
               type="text"
               id="course"
               name="course"
-              value={formData.department}
+              value={formData.course}
               onChange={handleChange}
               placeholder="Enter course name"
               required
@@ -213,9 +228,9 @@ export default function RegisterStudent() {
               type="text"
               id="year"
               name="year"
-              value={formData.department}
+              value={formData.year}
               onChange={handleChange}
-              placeholder="Enter Year"
+              placeholder="Enter year of study"
               required
             />
           </div>
@@ -223,18 +238,18 @@ export default function RegisterStudent() {
           {/* Session */}
           <div className="w-full">
             <label
-              htmlFor="Session"
+              htmlFor="session"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Session
             </label>
             <Input
               type="text"
-              id="Session"
-              name="Session"
-              value={formData.department}
+              id="session"
+              name="session"
+              value={formData.session}
               onChange={handleChange}
-              placeholder="Enter Session"
+              placeholder="Enter academic session"
               required
             />
           </div>
@@ -283,7 +298,7 @@ export default function RegisterStudent() {
                     Capture Image
                   </Button>
                   <Button type="button" onClick={() => setUseWebcam(false)}>
-                    Cancel Webcam
+                    Stop Webcam
                   </Button>
                 </div>
               </>
@@ -293,21 +308,24 @@ export default function RegisterStudent() {
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
-                  className="mb-2"
                 />
-                <Button type="button" onClick={() => setUseWebcam(true)}>
+                {imagePreview && (
+                  <div className="mt-4">
+                    <img
+                      src={imagePreview}
+                      alt="Captured or uploaded"
+                      className="w-32 h-32 object-cover rounded-md mt-2"
+                    />
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  onClick={() => setUseWebcam(true)}
+                  className="mt-4"
+                >
                   Use Webcam
                 </Button>
               </>
-            )}
-            {imagePreview && (
-              <div className="mt-4">
-                <img
-                  src={imagePreview}
-                  alt="Captured or Uploaded Image Preview"
-                  className="w-24 h-24 rounded-full border mt-2"
-                />
-              </div>
             )}
           </div>
 
@@ -331,9 +349,11 @@ export default function RegisterStudent() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Register Student
-          </Button>
+          <div className="w-full">
+            <Button type="submit" className="w-full">
+              {isLoading ? <Spinner /> : "Register"}
+            </Button>
+          </div>
         </form>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
 
 export default function CreateDepartment() {
   const [formData, setFormData] = useState({
@@ -9,6 +10,8 @@ export default function CreateDepartment() {
     courses: [""],
   });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for submit button
+  const [successMessage, setSuccessMessage] = useState(""); // Success message
 
   // Handle change in input fields
   const handleChange = (e) => {
@@ -44,10 +47,15 @@ export default function CreateDepartment() {
       return;
     }
 
-    // Reset error and log formData (replace with actual API call)
+    // Reset error and simulate API call
     setError("");
-    console.log("Department Data Submitted:", formData);
-    alert("Department successfully created.");
+    setIsSubmitting(true); // Start loading spinner
+
+    setTimeout(() => {
+      setIsSubmitting(false); // Stop loading spinner
+      setSuccessMessage("Department successfully created."); // Success message
+      setFormData({ name: "", deptId: "", courses: [""] }); // Reset the form data
+    }, 2000); // Simulating an API call with delay
   };
 
   return (
@@ -57,6 +65,7 @@ export default function CreateDepartment() {
           Create Department
         </h1>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+        {successMessage && <div className="text-green-500 text-sm mb-4">{successMessage}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Department Name */}
           <div className="w-full">
@@ -134,8 +143,15 @@ export default function CreateDepartment() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Create Department
+          <Button type="submit" className="w-full mt-6" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <div className="flex justify-center items-center">
+                <Spinner size="sm" className="mr-2" />
+                Submitting...
+              </div>
+            ) : (
+              "Create Department"
+            )}
           </Button>
         </form>
       </div>

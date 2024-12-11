@@ -662,13 +662,13 @@ return res
 
 const viewRegistrationKey = asyncHandler(async (req, res) => {
     // TODO: Implement viewRegistrationKey
-    const {deptId} = req.body
+    // const {deptId} = req.body
 
-    const dept = await Department.findOne({deptId})
-    if(!dept){
-        throw new ApiError(500,"DeptId is invalid")
-    }
-    const result = await Key.findOne({departmentId:dept?._id})
+    // const dept = await Department.findOne({deptId})
+    // if(!dept){
+    //     throw new ApiError(500,"DeptId is invalid")
+    // }
+    const result = await Key.find()
     if(!result){
         throw new ApiError(500,"Result not found")
     }

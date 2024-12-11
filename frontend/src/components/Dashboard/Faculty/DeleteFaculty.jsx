@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner"; // Import Spinner if available
 
 export default function DeleteFaculty() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state for spinner
 
   // Handle input changes
   const handleChange = (e) => {
@@ -13,7 +15,7 @@ export default function DeleteFaculty() {
   };
 
   // Handle form submission to delete faculty by email
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Check if the email is empty
@@ -23,15 +25,25 @@ export default function DeleteFaculty() {
       return;
     }
 
-    // Simulate deleting the faculty member (replace with actual API call)
-    // For now, we are assuming that a faculty member exists with this email
-    // You can replace this part with a real API call for deletion
-
-    console.log("Attempting to delete faculty with email:", email);
-    // Reset email field
-    setEmail("");
+    setLoading(true); // Start loading spinner
     setError("");
-    setSuccess("Faculty member deleted successfully.");
+
+    try {
+      // Simulate deleting the faculty member (replace with actual API call)
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulated delay
+      console.log("Attempting to delete faculty with email:", email);
+
+      // Simulate success
+      setEmail("");
+      setError("");
+      setSuccess("Faculty member deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting faculty:", err);
+      setError("An error occurred while deleting the faculty member.");
+      setSuccess("");
+    } finally {
+      setLoading(false); // Stop loading spinner
+    }
   };
 
   return (
@@ -63,8 +75,12 @@ export default function DeleteFaculty() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full mt-6">
-            Delete Faculty
+          <Button
+            type="submit"
+            className="w-full mt-6 flex items-center justify-center"
+            disabled={loading}
+          >
+            {loading ? <Spinner className="w-5 h-5 animate-spin" /> : "Delete Faculty"}
           </Button>
         </form>
       </div>
