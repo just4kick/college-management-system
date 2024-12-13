@@ -32,7 +32,7 @@ const DashboardLayout = ({ sidebarConfig, children, user }) => {
   );
 
   const handleLogout = () => {
-    // Implement logout logic here
+    // logout logic here
     console.log('Logging out...');
   };
 
@@ -64,6 +64,7 @@ const DashboardLayout = ({ sidebarConfig, children, user }) => {
           </Button>
         </div>
       </aside>
+      {/* Content area rendering */}
       <main className="flex-1 p-8 bg-background text-foreground overflow-y-auto min-w-0 rounded-lg">
         {activeItem ? <activeItem.component /> : children}
       </main>

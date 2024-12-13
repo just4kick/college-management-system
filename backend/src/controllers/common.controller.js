@@ -59,10 +59,11 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     
 
-    const options = {
-        httpOnly: true,
-        secure: true,
-    }
+    // const options = {
+    //     httpOnly: true,
+    //     secure: false,
+    //     sameSite:'Lax'
+    // }
     if(!generateOtp(email)){
         throw new ApiError(500,"OTP generation Failed")
     }
@@ -71,13 +72,12 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     
     return res
     .status(200)
-    .cookie("accessToken",accessToken,options)
-    .cookie("refreshToken",refreshToken,options)
+    // .cookie("accessToken",accessToken,options)
+    // .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
             200,
-            {
-            },
+            {accessToken,refreshToken},
             `OTP generation succesfully: ${email} `
         )
     )
@@ -138,24 +138,24 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid role. Must be 'Admin', 'Student', or 'Faculty'");
     }
 
-    const user = await userRole.findOne({email}).select("-password -refreshToken ")
+    const user = await userRole.findOne({email}).select("-password -refreshToken")
     const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     const cameraLocalPath = req.file?.path
     if(!cameraLocalPath){
         throw new ApiError(400,"Camera Image is required")
     }
     const faceEmbeddings = user.faceEmbedding
-    const options = {
-        httpOnly: true,
-        secure: true,
-    }
+    // const options = {
+    //     httpOnly: true,
+    //     secure: false,
+    // }
         if(await verifyAndRespond(cameraLocalPath,faceEmbeddings)===true){
             return res
             .status(200)
-            .cookie("accessToken",accessToken,options)
-            .cookie("refreshToken",refreshToken,options)
+            // .cookie("accessToken",accessToken,options)
+            // .cookie("refreshToken",refreshToken,options)
             .json(
-                new ApiResponse(200,user,"Face recognized succesfully.")
+                new ApiResponse(200,{user,accessToken,refreshToken},"Face recognized succesfully.")
             )
         }else{
             throw new ApiError(401,"Face does not match. Bhaag yha se")
