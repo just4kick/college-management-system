@@ -19,7 +19,6 @@ const facultySchema = new mongoose.Schema({
     },
     avatar:{
     type:String,
-    required:true,
   },
     password: {
       type: String,
@@ -39,7 +38,13 @@ const facultySchema = new mongoose.Schema({
     },
     refreshToken:{
       type:String,
-     }
+     },
+     isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  emailVerificationExpiry: Date
   },{timestamps:true});
   
   facultySchema.pre("save", async function(next){

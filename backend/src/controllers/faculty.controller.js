@@ -9,7 +9,7 @@ import { Student } from "../models/student.models.js";
 import { Department } from "../models/dept.models.js";
 import { Faculty } from "../models/faculty.models.js";
 import { Key } from "../models/regkey.models.js";
-
+import crypto from 'crypto';
 const viewDeptStudents = asyncHandler(async (req, res) => {
   console.log("Starting viewDeptStudents");
 
@@ -128,21 +128,20 @@ const selfRegisterFaculty = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Not a vaild Email!");
   }
   const dept = await Department.findOne({ deptId });
-
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verificationExpiry = new Date(Date.now() + 24*60*60*1000);
   // checking the faculty key is registered or not,if not he cant be able to register himself
   const isActiveFacultyKey = await Key.findOne({
     departmentId: dept?._id,
-    "facultyKeys.key": phoneNumber,
+    "facultyKeys.key": email,
     "facultyKeys.isActive": true,
-  });
+});
 
-  const matchingKey = isActiveFacultyKey?.facultyKeys.find(
-    (keyObj) => keyObj.key === phoneNumber && keyObj.isActive === true
-  );
-  //   console.log(matchingKey)
-  if (!matchingKey.isActive) {
-    throw new ApiError(402, "You are not authorized to register Yourself. ");
-  }
+if (!isActiveFacultyKey) {
+  return res
+    .status(401)
+    .json(new ApiResponse(401, {}, "You are not authorized to register. No active key found."));
+}
 
   const avatarLocalPath = req.files?.avatar[0].path;
   const avatar = await uploadOnCloudinary(avatarLocalPath);
@@ -159,6 +158,9 @@ const selfRegisterFaculty = asyncHandler(async (req, res) => {
     faceEmbedding,
     isFaceRegistered: true,
     department: dept?._id,
+    emailVerificationToken: verificationToken,
+    emailVerificationExpiry: verificationExpiry,
+    isEmailVerified: false,
   });
 
   if (!faculty) {

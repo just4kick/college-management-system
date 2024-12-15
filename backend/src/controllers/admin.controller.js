@@ -316,21 +316,32 @@ const registerFaculty = asyncHandler(async (req, res) => {
     }
     const dept = await Department.findOne({deptId})
 
-    const avatarLocalPath = req.files?.avatar[0].path
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const cameraImageLocalPath = req.files?.cameraImage[0].path
-    
-    const faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
+    let avatarUrl;
+    if(req.files?.avatar){
+        const avatarLocalPath = req.files.avatar[0].path
+        const uploadedAvatar = await uploadOnCloudinary(avatarLocalPath)
+        avatarUrl = uploadedAvatar?.url
+    }
+
+    let faceEmbedding;
+    let isFaceRegistered = false;
+    if(req.files?.cameraImage){
+        const cameraImageLocalPath = req.files.cameraImage[0].path
+        faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
+        isFaceRegistered = true
+    }
 
     const faculty = await Faculty.create({
         fullName,
         email,
         phoneNumber,
-        avatar:avatar.url,
         password,
-        faceEmbedding,
-        isFaceRegistered:true,
-        department:dept?._id,
+        department: dept?._id,
+        ...(avatarUrl && { avatar: avatarUrl }),
+        ...(faceEmbedding && { 
+            faceEmbedding,
+            isFaceRegistered 
+        })
     })
 
     if(!faculty){
@@ -476,23 +487,36 @@ const registerStudent = asyncHandler(async (req, res) => {
     }
     const dept = await Department.findOne({deptId})
 
-    const avatarLocalPath = req.files?.avatar[0].path
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    const cameraImageLocalPath = req.files?.cameraImage[0].path
-    const faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
+    let avatarUrl;
+    if(req.files?.avatar){
+        const avatarLocalPath = req.files.avatar[0].path
+        const uploadedAvatar = await uploadOnCloudinary(avatarLocalPath)
+        avatarUrl = uploadedAvatar?.url
+    }
+
+    // Handle optional face registration
+    let faceEmbedding;
+    let isFaceRegistered = false;
+    if(req.files?.cameraImage){
+        const cameraImageLocalPath = req.files.cameraImage[0].path
+        faceEmbedding = await generateFaceEncoding(cameraImageLocalPath)
+        isFaceRegistered = true
+    }
 
     const student = await Student.create({
         fullName,
         email,
         phoneNumber,
-        avatar:avatar.url,
         password,
-        faceEmbedding,
-        isFaceRegistered:true,
         course,
         year,
         session,
-        department:dept?._id
+        department:dept?._id,
+        ...(avatarUrl && { avatar: avatarUrl }),
+        ...(faceEmbedding && { 
+            faceEmbedding,
+            isFaceRegistered 
+        })
     })
 
     if(!student){
@@ -607,57 +631,60 @@ const viewAllStudentDeptWise = asyncHandler(async (req, res) => {
 });
 
 const generateRegistrationKey = asyncHandler(async (req, res) => {
-    // TODO: Implement generateRegistrationKey
-    const { deptId,facultyKeys, studentKeys } = req.body;
+    const { deptId, facultyKeys, studentKeys } = req.body;
 
+    
+    const normalizedFacultyKeys = facultyKeys ? 
+        (Array.isArray(facultyKeys) ? facultyKeys : [facultyKeys]) : [];
+    const normalizedStudentKeys = studentKeys ? 
+        (Array.isArray(studentKeys) ? studentKeys : [studentKeys]) : [];
 
-if (!facultyKeys?.length && !studentKeys?.length) {
-    throw new ApiError(400, "Keys are empty");
-}
+    if (normalizedFacultyKeys.length === 0 && normalizedStudentKeys.length === 0) {
+        throw new ApiError(400, "At least one key is required");
+    }
 
-function isValidPhone(phoneNumber) {
-    return phoneNumber.length === 10;
-}
+    //  email format valdiating
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
 
-if (facultyKeys && Array.isArray(facultyKeys)) {
-    for (let i = 0; i < facultyKeys.length; i++) {
-        if (!isValidPhone(facultyKeys[i].key)) {
-            throw new ApiError(401, `Phone Number at index ${i} in facultyKeys must be of 10 digits.`);
+   
+    if (normalizedFacultyKeys.length > 0) {
+        for (let i = 0; i < normalizedFacultyKeys.length; i++) {
+            if (!isValidEmail(normalizedFacultyKeys[i].key)) {
+                throw new ApiError(401, `Invalid faculty email at index ${i}`);
+            }
         }
     }
-} else if (facultyKeys) {
-    throw new ApiError(400, "facultyKeys must be an array.");
-}
 
-if (studentKeys && Array.isArray(studentKeys)) {
-    for (let i = 0; i < studentKeys.length; i++) {
-        if (!isValidPhone(studentKeys[i].key)) {
-            throw new ApiError(401, `Phone Number at index ${i} in studentKeys must be of 10 digits.`);
+
+    if (normalizedStudentKeys.length > 0) {
+        for (let i = 0; i < normalizedStudentKeys.length; i++) {
+            if (!isValidEmail(normalizedStudentKeys[i].key)) {
+                throw new ApiError(401, `Invalid student email at index ${i}`);
+            }
         }
     }
-} else if (studentKeys) {
-    throw new ApiError(400, "studentKeys must be an array.");
-}
 
-const dept = await Department.findOne({deptId})
-if (!dept?._id) {
-    throw new ApiError(400, "Invalid department ID");
-}
-const keys = await Key.create({
-    departmentId: dept?._id,
-    facultyKeys:facultyKeys,
-    studentKeys:studentKeys,
-})
+    const dept = await Department.findOne({ deptId });
+    if (!dept?._id) {
+        throw new ApiError(400, "Invalid department ID");
+    }
 
-if(!keys){
-    throw new ApiError(400,"Something went wrong, creation Failed")
-}
+    const keys = await Key.create({
+        departmentId: dept?._id,
+        facultyKeys: normalizedFacultyKeys,
+        studentKeys: normalizedStudentKeys,
+    });
 
-return res
+    if (!keys) {
+        throw new ApiError(400, "Key creation failed");
+    }
+
+    return res
         .status(200)
-        .json(
-            new ApiResponse(200,"Keys generatin succesfull")
-        )
+        .json(new ApiResponse(200, keys, "Keys generated successfully"));
 });
 
 const viewRegistrationKey = asyncHandler(async (req, res) => {

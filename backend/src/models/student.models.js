@@ -19,7 +19,6 @@ const studentSchema = new mongoose.Schema({
     },
     avatar:{
     type:String,
-    required:true,
   },
     password: {
       type: String,
@@ -48,7 +47,13 @@ const studentSchema = new mongoose.Schema({
     },
     refreshToken:{
       type:String,
-     }
+     },
+     isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  emailVerificationExpiry: Date
   },{timestamps:true});
   
 

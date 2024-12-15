@@ -52,6 +52,10 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     if(!user){
         throw new ApiError(404,"User does not exist")
     }
+
+    if (!user.isEmailVerified) {
+        return res.status(401).json(new ApiResponse(401,{},"Please verify your email before logging in"))
+      }
     const isPasswordValid = await user.isPasswordCorrect(password)
     if(!isPasswordValid){
         throw new ApiError(401,"Invalid user crediantials")
@@ -73,7 +77,6 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     return res
     .status(200)
     .cookie("accessToken",accessToken,options)
-    .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
             200,
@@ -139,6 +142,10 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
     }
 
     const user = await userRole.findOne({email}).select("-password -refreshToken")
+    
+    if (!user.isEmailVerified) {
+        return res.status(401).json(new ApiResponse(401,{},"Please verify your email before logging in"))
+      }
     const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     const cameraLocalPath = req.file?.path
     if(!cameraLocalPath){
@@ -154,7 +161,6 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
             return res
             .status(200)
             .cookie("accessToken",accessToken,options)
-            .cookie("refreshToken",refreshToken,options)
             .json(
                 new ApiResponse(200,{user},"Face recognized succesfully.")
             )
@@ -350,7 +356,41 @@ const updateFaceData = asyncHandler(async(req,res)=>{
         new ApiResponse(200,user,"Face data updated succesfully.")
     )
 });
-
+const verifyEmail = asyncHandler(async (req, res) => {
+    const { token, role } = req.query;
+    
+    // Select model based on role
+    let Model;
+    switch(role.toLowerCase()) {
+      case 'faculty':
+        Model = Faculty;
+        break;
+      case 'student':
+        Model = Student;
+        break;
+      default:
+        throw new ApiError(400, "Invalid role specified");
+    }
+  
+    const user = await Model.findOne({
+      emailVerificationToken: token,
+      emailVerificationExpiry: { $gt: Date.now() }
+    });
+  
+    if (!user) {
+      throw new ApiError(400, "Invalid or expired verification token");
+    }
+  
+    // Update user verification status
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpiry = undefined;
+    await user.save();
+  
+    return res.status(200).json(
+      new ApiResponse(200, {}, "Email verified successfully")
+    );
+  });
 export {
     loginRequestOtp,
     loginVerifyOtp,
@@ -361,5 +401,6 @@ export {
     resetPassword,
     userDetails,
     updateFaceData,
-    checkAuth
+    checkAuth,
+    verifyEmail
 };

@@ -1,7 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from "cookie-parser"
-import { checkAuth } from './controllers/common.controller.js'
+import { checkAuth,verifyEmail } from './controllers/common.controller.js'
 const app = express()
 
 app.use(cors({
@@ -26,7 +26,7 @@ app.use("/api/v1/faculty",facultyRouter)
 app.use("/api/v1/student",studentRouter)
 
 app.get("/api/v1/check-auth",checkAuth)
-
+app.get("/api/v1/verify-email", verifyEmail)
 
 
 export {app}

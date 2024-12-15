@@ -8,7 +8,7 @@ import { Student } from "../models/student.models.js";
 import {Department} from "../models/dept.models.js"
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-
+import crypto from 'crypto';
 
 const updatePersonalDetails = asyncHandler(async (req, res) => {
     // TODO: Implement updatePersonalDetails
@@ -59,16 +59,19 @@ const selfRegisterStudent = asyncHandler(async (req, res) => {
         throw new ApiError(400,"Not a vaild Email!")
     }
     const dept = await Department.findOne({deptId})
-
-    const isActiveStudentKey = await Key.findOne({
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpiry = new Date(Date.now() + 24*60*60*1000);
+    const isActiveStudentyKey = await Key.findOne({
         departmentId: dept?._id,
-        "studentKeys.key": phoneNumber,
-        "studentKeys.isActive": true,
-      });
-      
-      const matchingKey = isActiveStudentKey?.studentKeys.find(
-        (keyObj) => keyObj.key === phoneNumber && keyObj.isActive === true
-      );
+        "facultyKeys.key": email,
+        "facultyKeys.isActive": true,
+    });
+    
+    if (!isActiveStudentyKey) {
+        return res
+    .status(400)
+    .json(new ApiResponse(400, faculty, "You are not authorized to register. No active key found."));
+    }
 
       if(!matchingKey.isActive){
         throw new ApiError(402,"You are not authorized to register Yourself. ")
@@ -89,7 +92,10 @@ const selfRegisterStudent = asyncHandler(async (req, res) => {
         course,
         year,
         session,
-        department:dept?._id
+        department:dept?._id,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpiry: verificationExpiry,
+        isEmailVerified: false
     })
 
     if(!student){

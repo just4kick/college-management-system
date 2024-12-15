@@ -40,7 +40,11 @@ const adminSchema = new mongoose.Schema({
      },
      refreshToken:{
       type:String,
-     }
+     },
+     isEmailVerified:{
+      type:Boolean,
+      default:true
+     },
 },{timestamps:true});
 
 adminSchema.pre("save", async function(next){
