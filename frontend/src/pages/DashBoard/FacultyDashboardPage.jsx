@@ -2,12 +2,8 @@ import React from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import FacultyControlConfig from '@/config/facultyControlsConfig';
 
-const FacultyDashboardPage = () => {
-  const user = {
-    name: "John Doe",
-    role: "Admin",
-    avatarUrl: "/path/to/avatar.jpg" // Replace with actual path or use a placeholder
-  };
+const FacultyDashboardPage = ({user}) => {
+  
 
   return (
     <DashboardLayout sidebarConfig={FacultyControlConfig.sidebarControls} user={user}>

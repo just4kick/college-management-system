@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible"
 import {  ChevronRight, LogOut } from 'lucide-react';
@@ -6,7 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const DashboardLayout = ({ sidebarConfig, children, user }) => {
   const [activeItem, setActiveItem] = useState(null);
+  const navigate = useNavigate();
 
+  // checking if the user is null or not for debugging
+  if (!user) {
+    return <div className="flex h-screen items-center justify-center">Loading DashBoard layout page ...</div>;
+  }
   const renderSidebarItem = (item, index) => (
     <Collapsible key={index} className="mb-4">
       <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-md hover:bg-accent group">
@@ -31,9 +38,22 @@ const DashboardLayout = ({ sidebarConfig, children, user }) => {
     </Collapsible>
   );
 
-  const handleLogout = () => {
-    // logout logic here
-    console.log('Logging out...');
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/${user.role.toLowerCase()}/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to logout');
+      }
+      localStorage.removeItem('user')
+      // Redirect to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   return (
@@ -46,11 +66,11 @@ const DashboardLayout = ({ sidebarConfig, children, user }) => {
         <div className="mt-auto">
           <div className="flex items-center space-x-4 mb-4 p-2 bg-accent rounded-lg">
             <Avatar>
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={user.avatar} alt={user.fullName} />
+              {/* <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback> */}
             </Avatar>
             <div>
-              <p className="text-sm font-medium">{user.name}</p>
+              <p className="text-sm font-medium">{user.fullName}</p>
               <p className="text-xs text-muted-foreground">{user.role}</p>
             </div>
           </div>
@@ -73,6 +93,27 @@ const DashboardLayout = ({ sidebarConfig, children, user }) => {
 };
 
 
+DashboardLayout.propTypes = {
+  sidebarConfig: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      icon: PropTypes.elementType,
+      items: PropTypes.arrayOf(
+        PropTypes.shape({
+          label: PropTypes.string.isRequired,
+          component: PropTypes.elementType.isRequired
+        })
+      ).isRequired
+    })
+  ).isRequired,
+  children: PropTypes.node,
+  user: PropTypes.shape({
+    role: PropTypes.string.isRequired,
+    fullName: PropTypes.string.isRequired,
+    avatar: PropTypes.string
+  }).isRequired
+};
 
 export default DashboardLayout;
+
 

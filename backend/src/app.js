@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import cookieParser from "cookie-parser"
+import { checkAuth } from './controllers/common.controller.js'
 const app = express()
 
 app.use(cors({
@@ -23,6 +24,8 @@ import studentRouter from "./routes/student.routes.js"
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/faculty",facultyRouter)
 app.use("/api/v1/student",studentRouter)
+
+app.get("/api/v1/check-auth",checkAuth)
 
 
 

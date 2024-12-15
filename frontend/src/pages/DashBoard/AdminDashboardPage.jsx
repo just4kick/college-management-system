@@ -2,12 +2,7 @@ import React from 'react';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import AdminControlConfig from '@/config/adminControlsConfig';
 
-const AdminDashboardPage = () => {
-  const user = {
-    name: "John Doe",
-    role: "Admin",
-    avatarUrl: "/path/to/avatar.jpg" // Replace with actual path or use a placeholder
-  };
+const AdminDashboardPage = ({user}) => {
 
   return (
     <DashboardLayout sidebarConfig={AdminControlConfig.sidebarControls} user={user}>

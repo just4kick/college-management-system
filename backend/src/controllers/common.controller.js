@@ -59,11 +59,11 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     const {accessToken,refreshToken}=await generateAccessAndRefreshTokens(user._id,userRole)
     
 
-    // const options = {
-    //     httpOnly: true,
-    //     secure: false,
-    //     sameSite:'Lax'
-    // }
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV==='production',
+        sameSite:process.env.NODE_ENV==='production' ? 'None' : 'Lax',
+    }
     if(!generateOtp(email)){
         throw new ApiError(500,"OTP generation Failed")
     }
@@ -72,12 +72,12 @@ const loginRequestOtp = asyncHandler(async (req, res) => {
     
     return res
     .status(200)
-    // .cookie("accessToken",accessToken,options)
-    // .cookie("refreshToken",refreshToken,options)
+    .cookie("accessToken",accessToken,options)
+    .cookie("refreshToken",refreshToken,options)
     .json(
         new ApiResponse(
             200,
-            {accessToken,refreshToken},
+            {},
             `OTP generation succesfully: ${email} `
         )
     )
@@ -145,17 +145,18 @@ const faceRecognitionLogin = asyncHandler(async (req, res) => {
         throw new ApiError(400,"Camera Image is required")
     }
     const faceEmbeddings = user.faceEmbedding
-    // const options = {
-    //     httpOnly: true,
-    //     secure: false,
-    // }
+    const options = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV==='production',
+        sameSite:process.env.NODE_ENV==='production' ? 'None' : 'Lax',
+    }
         if(await verifyAndRespond(cameraLocalPath,faceEmbeddings)===true){
             return res
             .status(200)
-            // .cookie("accessToken",accessToken,options)
-            // .cookie("refreshToken",refreshToken,options)
+            .cookie("accessToken",accessToken,options)
+            .cookie("refreshToken",refreshToken,options)
             .json(
-                new ApiResponse(200,{user,accessToken,refreshToken},"Face recognized succesfully.")
+                new ApiResponse(200,{user},"Face recognized succesfully.")
             )
         }else{
             throw new ApiError(401,"Face does not match. Bhaag yha se")
@@ -213,6 +214,34 @@ const logout = asyncHandler(async (req, res) => {
     .clearCookie("refreshToken",options)
     .json(new ApiResponse(200,result,"User logged out"))
 });
+
+const checkAuth = asyncHandler(async(req,res)=>{
+   const token = req.cookies.accessToken;
+  if (token) {
+    return res.status(200).json({ ok: true });
+  } else {
+    return res.status(401).json({ ok: false });
+  }
+//    console.log("CheckAuth errors")
+//    console.log(token)
+//    if(!token){
+//     return res.status(401).json(new ApiResponse(401,{},"Token not available"))
+//    }
+// //    try {
+//     const decoded = jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
+//     console.log(decoded)
+//     const userRole = roleModelMap[decoded.role];
+//     console.log(userRole)
+//     const user = await userRole.findById(decoded.id).select("-password -refreshToken -faceEmbedding")
+//     console.log(user)
+//     if(!user){
+//         return res.status(401).json(new ApiResponse(401,{},"Not Authenticated"))
+//     }
+//     return res.status(200).json(new ApiResponse(200, user, "Authenticated"));
+//    } catch (error) {
+//     return res.status(401).json(new ApiResponse(401,{},"Not Authenticated"))
+//    }
+})
 
 const requestForgotPassword = asyncHandler(async(req,res)=>{
     const {email} = req.body
@@ -331,5 +360,6 @@ export {
     requestForgotPassword,
     resetPassword,
     userDetails,
-    updateFaceData
+    updateFaceData,
+    checkAuth
 };
