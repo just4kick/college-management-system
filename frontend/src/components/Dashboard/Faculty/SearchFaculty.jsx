@@ -1,69 +1,49 @@
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input"; // Assuming you have a styled Input component
-import { Button } from "@/components/ui/button"; // Assuming you have a styled Button component
-import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function SearchFaculty() {
   const [email, setEmail] = useState("");
-  const [facultyData, setFacultyData] = useState(null);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state for spinner
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [faculty, setFaculty] = useState(null);
 
-  // Handle input change
   const handleChange = (e) => {
     setEmail(e.target.value);
   };
 
-  // Simulate fetching faculty data by email with a delay
-  const fetchFacultyByEmail = (email) => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Replace this with your actual API call.
-        const mockData = {
-          email: "faculty@example.com",
-          fullName: "John Doe",
-          phoneNumber: "123-456-7890",
-          avatar: "/path/to/avatar.jpg",
-          department: "Computer Science",
-          role: "faculty",
-        };
-
-        if (email === mockData.email) {
-          resolve(mockData);
-        } else {
-          resolve(null); // Simulate no faculty found
-        }
-      }, 2000); // Simulate a 2-second delay
-    });
-  };
-
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setError("Email is required.");
-      setFacultyData(null);
+
+    if (!email.trim()) {
+      setError("Faculty email is required.");
+      setSuccess("");
+      setFaculty(null);
       return;
     }
 
     setError("");
-    setLoading(true); // Start loading spinner
+    setLoading(true);
 
     try {
-      const result = await fetchFacultyByEmail(email);
+      const response = await fetch(`http://localhost:8000/api/v1/admin/search-faculty?email=${encodeURIComponent(email)}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
 
-      if (result) {
-        setFacultyData(result);
-        setError("");
-      } else {
-        setFacultyData(null);
-        setError("Faculty member not found.");
-      }
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
+      setFaculty(result.data);
+      setSuccess("Faculty found successfully.");
     } catch (err) {
       console.error("Error fetching faculty:", err);
-      setError("An error occurred while searching for the faculty member.");
+      setError("An error occurred while fetching the faculty.");
+      setFaculty(null);
     } finally {
-      setLoading(false); // Stop loading spinner
+      setLoading(false);
     }
   };
 
@@ -74,9 +54,9 @@ export default function SearchFaculty() {
           Search Faculty by Email
         </h1>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-
-        {/* Search Form */}
+        {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Email Field */}
           <div className="w-full">
             <label
               htmlFor="email"
@@ -90,9 +70,8 @@ export default function SearchFaculty() {
               name="email"
               value={email}
               onChange={handleChange}
-              placeholder="Enter faculty email"
+              placeholder="Enter faculty email to search"
               required
-              className="bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
             />
           </div>
 
@@ -105,42 +84,16 @@ export default function SearchFaculty() {
             {loading ? <Spinner className="w-5 h-5 animate-spin" /> : "Search Faculty"}
           </Button>
         </form>
-
-        {/* Display Search Result */}
-        {facultyData && (
+        {faculty && (
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               Faculty Details
             </h2>
-
-            {/* Faculty Details Row */}
-            <div className="overflow-x-auto mt-4 bg-gray-100 dark:bg-gray-800 rounded-md shadow-md">
-              <table className="min-w-full bg-white dark:bg-gray-800 rounded-md shadow-md">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Full Name</th>
-                    <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Email</th>
-                    <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Phone</th>
-                    <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Department</th>
-                    <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Avatar</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-t border-gray-200 dark:border-gray-700">
-                    <td className="px-4 py-2">{facultyData.fullName}</td>
-                    <td className="px-4 py-2">{facultyData.email}</td>
-                    <td className="px-4 py-2">{facultyData.phoneNumber}</td>
-                    <td className="px-4 py-2">{facultyData.department}</td>
-                    <td className="px-4 py-2">
-                      <img
-                        src={facultyData.avatar}
-                        alt="Faculty Avatar"
-                        className="w-16 h-16 rounded-full"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-md">
+              <p><strong>Name:</strong> {faculty.fullName}</p>
+              <p><strong>Email:</strong> {faculty.email}</p>
+              <p><strong>Phone Number:</strong> {faculty.phoneNumber}</p>
+              <p><strong>Department:</strong> {faculty.department.name}</p>
             </div>
           </div>
         )}

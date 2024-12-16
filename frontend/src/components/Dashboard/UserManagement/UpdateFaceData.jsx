@@ -48,7 +48,23 @@ export default function UpdateFaceData() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const generateRandomFileName = () => {
+    return `capturedImage${Math.floor(Math.random() * 10000)}.jpg`;
+  };
+
+  const dataURLToBlob = (dataURL) => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!capturedImage && !uploadedImage) {
       setError("Please upload or capture an image.");
@@ -57,16 +73,36 @@ export default function UpdateFaceData() {
 
     const imageData = capturedImage || uploadedImage;
     setIsSubmitting(true); // Start loading spinner
-    console.log("Image Data Submitted:", imageData);
 
-    setTimeout(() => {
-      setIsSubmitting(false); // Stop loading spinner
+    const localData = localStorage.getItem('user');
+    const user = JSON.parse(localData);
+    const role = user.role.toLowerCase();
+
+    const formData = new FormData();
+    const blob = dataURLToBlob(imageData);
+    const fileName = generateRandomFileName();
+    formData.append("cameraImage", blob, fileName);
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/update-face`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      setSuccessMessage("Face data updated successfully!");
       setError(""); // Clear error if any
       setCapturedImage(null); // Reset captured image
       setUploadedImage(null); // Reset uploaded image
       stopCamera(); // Turn off camera after submit
-      setSuccessMessage("Image successfully submitted."); // Success message
-    }, 2000); // Simulating an API call with delay
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsSubmitting(false); // Stop loading spinner
+    }
   };
 
   return (

@@ -43,6 +43,7 @@ router
   .route("/face-login")
   .post(upload.single("cameraImage"), faceRecognitionLogin);
 router.route("/request-forgot-pass").post(requestForgotPassword),
+router.route("/reset-password").patch(resetPassword);
   router.route("/self-register-faculty").post(
     upload.fields([
       {
@@ -60,7 +61,7 @@ router.route("/request-forgot-pass").post(requestForgotPassword),
 router.use(verifyJWT);
 //each faculty can perform
 router.route("/view-students").get(verifyJWT, viewDeptStudents);
-router.route("/update-Faculty-Details").patch(verifyJWT, updateFacultyDetails);
+router.route("/update-details").patch(verifyJWT, updateFacultyDetails);
 router.route("/register-student").post(
   upload.fields([
     {
@@ -81,7 +82,7 @@ router.route("/view-all-student").get(viewAllStudent);
 router.route("/logout").post(logout);
 router.route("/login-verify").post(loginVerifyOtp);
 router.route("/change-password").post(changeCurrentPassword);
-router.route("/reset-password").patch(resetPassword);
+
 router.route("/user-detail").get(userDetails);
 router
   .route("/update-face")

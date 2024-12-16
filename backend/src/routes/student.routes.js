@@ -30,7 +30,7 @@ router.route("/self-register-student").post(
     ])
     ,selfRegisterStudent)
 
-router.route("/update-detail").patch(upload.single("avatar"),verifyJWT,updatePersonalDetails)
+router.route("/update-details").patch(upload.single("avatar"),verifyJWT,updatePersonalDetails)
 
 // common controller routes
 
@@ -40,7 +40,7 @@ router.route("/face-login").post(upload.single("cameraImage"),faceRecognitionLog
 router.route("/change-password").post(verifyJWT,changeCurrentPassword)
 router.route("/logout").post(verifyJWT,logout)
 router.route("/request-forgot-pass").post(requestForgotPassword),
-router.route("/reset-password").patch(verifyJWT,resetPassword)
+router.route("/reset-password").patch(resetPassword)
 router.route("/user-detail").get(verifyJWT,userDetails)
 router.route("/update-face").patch(upload.single("cameraImage"),verifyJWT,updateFaceData)
 

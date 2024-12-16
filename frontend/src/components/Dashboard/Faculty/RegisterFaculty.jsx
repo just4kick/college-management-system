@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import Webcam from "react-webcam";
+import React, { useState, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner"; // Import Spinner if you have it
+import { Spinner } from "@/components/ui/spinner";
+import Webcam from "react-webcam";
 
 export default function RegisterFaculty() {
   const [formData, setFormData] = useState({
@@ -12,65 +12,63 @@ export default function RegisterFaculty() {
     avatar: null,
     capturedImage: null,
     password: "",
-    role: "faculty",
-    department: "",
+    deptId: "",
   });
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [useWebcam, setUseWebcam] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state for the spinner
+  const [loading, setLoading] = useState(false);
+  const webcamRef = useRef(null);
 
-  const webcamRef = React.useRef(null);
-
-  // Handle input changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle avatar upload
-  const handleAvatarUpload = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result); // Display image preview
-        setFormData((prev) => ({ ...prev, avatar: reader.result })); // Save as base64
-      };
-      reader.readAsDataURL(file);
+      setFormData({ ...formData, [e.target.name]: file });
+      if (e.target.name === "avatar") {
+        setAvatarPreview(URL.createObjectURL(file));
+      } else if (e.target.name === "capturedImage") {
+        setImagePreview(URL.createObjectURL(file));
+      }
     }
   };
 
-  // Handle image upload for capture section
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result); // Display image preview
-        setFormData((prev) => ({ ...prev, capturedImage: reader.result })); // Save as base64
-      };
-      reader.readAsDataURL(file);
+  const generateRandomFileName = () => {
+    return `capturedImage${Math.floor(Math.random() * 10000)}.jpg`;
+  };
+
+  const dataURLToBlob = (dataURL) => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
     }
+    return new Blob([u8arr], { type: mime });
   };
 
-  // Capture webcam image
-  const captureWebcamImage = () => {
-    const imageSrc = webcamRef.current.getScreenshot();
-    setImagePreview(imageSrc); // Display webcam image preview
-    setFormData((prev) => ({ ...prev, capturedImage: imageSrc })); // Save as base64
-  };
+  const captureImage = useCallback(() => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      setFormData({ ...formData, capturedImage: imageSrc });
+      setImagePreview(imageSrc);
+    }
+  }, [webcamRef]);
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { fullName, email, phoneNumber, avatar, password, department, capturedImage } = formData;
+    const { fullName, email, phoneNumber, avatar, password, deptId, capturedImage } = formData;
 
-    if (!fullName || !email || !phoneNumber || !password || !department || !avatar || !capturedImage) {
-      setError("All fields are required. Please provide both avatar and captured image.");
+    if (!fullName || !email || !phoneNumber || !password || !deptId) {
+      setError("All fields except avatar and captured image are required.");
       setSuccess("");
       return;
     }
@@ -78,10 +76,29 @@ export default function RegisterFaculty() {
     setLoading(true); // Start spinner
     setError("");
 
+    const formDataToSend = new FormData();
+    formDataToSend.append("fullName", fullName);
+    formDataToSend.append("email", email);
+    formDataToSend.append("phoneNumber", phoneNumber);
+    formDataToSend.append("password", password);
+    formDataToSend.append("deptId", deptId);
+    if (avatar) {
+      formDataToSend.append("avatar", avatar);
+    }
+    if (capturedImage) {
+      const blob = dataURLToBlob(capturedImage);
+      formDataToSend.append("cameraImage", blob, generateRandomFileName());
+    }
+
     try {
-      // Simulate submission (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulated delay
-      console.log("Faculty Data Submitted:", formData);
+      const response = await fetch('http://localhost:8000/api/v1/admin/register-faculty', {
+        method: 'POST',
+        credentials: 'include',
+        body: formDataToSend,
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
 
       setSuccess("Faculty registered successfully.");
       setFormData({
@@ -91,8 +108,7 @@ export default function RegisterFaculty() {
         avatar: null,
         capturedImage: null,
         password: "",
-        role: "faculty",
-        department: "",
+        deptId: "",
       });
       setAvatarPreview(null);
       setImagePreview(null);
@@ -114,174 +130,130 @@ export default function RegisterFaculty() {
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Full Name */}
-          <div className="w-full">
-            <label
-              htmlFor="fullName"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Full Name
-            </label>
-            <Input
-              type="text"
-              id="fullName"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              placeholder="Enter full name"
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div className="w-full">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Email
-            </label>
-            <Input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Enter email"
-              required
-            />
-          </div>
-
-          {/* Phone Number */}
-          <div className="w-full">
-            <label
-              htmlFor="phoneNumber"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Phone Number
-            </label>
-            <Input
-              type="text"
-              id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Enter phone number"
-              required
-            />
-          </div>
-
-          {/* Department */}
-          <div className="w-full">
-            <label
-              htmlFor="department"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Department
-            </label>
-            <Input
-              type="text"
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              placeholder="Enter department name"
-              required
-            />
-          </div>
-
-          {/* Avatar Upload */}
-          <div className="w-full">
-            <label
-              htmlFor="avatar"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Upload Avatar
-            </label>
-            <Input
-              type="file"
-              id="avatar"
-              name="avatar"
-              accept="image/*"
-              onChange={handleAvatarUpload}
-            />
-            {avatarPreview && (
-              <div className="mt-4">
-                <img
-                  src={avatarPreview}
-                  alt="Avatar Preview"
-                  className="w-24 h-24 rounded-full border mt-2"
-                />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Full Name
+              </label>
+              <Input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Email
+              </label>
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Phone Number
+              </label>
+              <Input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Password
+              </label>
+              <Input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Department ID
+              </label>
+              <Input
+                type="text"
+                name="deptId"
+                value={formData.deptId}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Avatar (Optional)
+              </label>
+              <Input
+                type="file"
+                name="avatar"
+                accept="image/*"
+                onChange={handleFileChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Captured Image (Optional)
+              </label>
+              <div className="flex items-center space-x-4">
+                <Button
+                  type="button"
+                  variant={useWebcam ? 'default' : 'outline'}
+                  onClick={() => setUseWebcam(!useWebcam)}
+                >
+                  {useWebcam ? 'Use Upload' : 'Use Webcam'}
+                </Button>
               </div>
-            )}
-          </div>
-
-          {/* Capture Image */}
-          <div className="w-full">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Capture or Upload Image
-            </label>
-            {useWebcam ? (
-              <>
-                <Webcam
-                  audio={false}
-                  ref={webcamRef}
-                  screenshotFormat="image/jpeg"
-                  className="rounded-md border"
-                />
-                <div className="flex space-x-2 mt-4">
-                  <Button type="button" onClick={captureWebcamImage}>
+              {useWebcam ? (
+                <>
+                  <Webcam
+                    ref={webcamRef}
+                    audio={false}
+                    screenshotFormat="image/jpeg"
+                    className="w-full h-48 object-cover mt-2"
+                  />
+                  <Button
+                    type="button"
+                    className="w-full mt-2"
+                    onClick={captureImage}
+                  >
                     Capture Image
                   </Button>
-                  <Button type="button" onClick={() => setUseWebcam(false)}>
-                    Cancel Webcam
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
+                </>
+              ) : (
                 <Input
                   type="file"
+                  name="capturedImage"
                   accept="image/*"
-                  onChange={handleImageUpload}
-                  className="mb-2"
+                  onChange={handleFileChange}
                 />
-                <Button type="button" onClick={() => setUseWebcam(true)}>
-                  Use Webcam
-                </Button>
-              </>
-            )}
-            {imagePreview && (
-              <div className="mt-4">
-                <img
-                  src={imagePreview}
-                  alt="Captured or Uploaded Image Preview"
-                  className="w-24 h-24 rounded-full border mt-2"
-                />
-              </div>
-            )}
+              )}
+            </div>
           </div>
-
-          {/* Password */}
-          <div className="w-full">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Password
-            </label>
-            <Input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Enter password"
-              required
-            />
+          <div className="mt-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              Image Previews
+            </h2>
+            <div className="flex space-x-4">
+              {avatarPreview && (
+                <img src={avatarPreview} alt="Avatar Preview" className="w-32 h-32 rounded-md" />
+              )}
+              {imagePreview && (
+                <img src={imagePreview} alt="Captured Preview" className="w-32 h-32 rounded-md" />
+              )}
+            </div>
           </div>
-
-          {/* Submit Button */}
           <Button
             type="submit"
             className="w-full mt-6 flex items-center justify-center"

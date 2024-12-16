@@ -28,7 +28,7 @@ const adminSchema = new mongoose.Schema({
   },
   avatar:{
     type:String,
-    required:true,
+    required:false,
   },
   isFaceRegistered: {
      type: Boolean,

@@ -16,7 +16,8 @@ import{generateFaceEncoding} from "../services/faceRecognition.service.js"
 import fs from "fs"
 import axios from "axios"
 import FormData from 'form-data';
-
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 
 
 const createAdmin = asyncHandler(async (req, res) => {
@@ -72,12 +73,16 @@ const createAdmin = asyncHandler(async (req, res) => {
     }
     
     
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    const cameraLocalPath = req.files?.cameraImage[0]?.path
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    const cameraLocalPath = req.files?.cameraImage?.[0]?.path
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-    if(!avatar){
-        throw new ApiError(400,"Avatar is not availavle")
+    let avatarUrl;
+    if (avatarLocalPath) {
+        const avatar = await uploadOnCloudinary(avatarLocalPath);
+        if (!avatar) {
+            throw new ApiError(400, "Avatar is not available");
+        }
+        avatarUrl = avatar.url;
     }
     let faceEncoding;
     if (cameraLocalPath) {
@@ -108,10 +113,11 @@ const createAdmin = asyncHandler(async (req, res) => {
         email,
         phoneNumber,
         role,
-        avatar:avatar.url,
+        ...(avatarUrl && { avatar: avatarUrl }),
         password,
         faceEmbedding:faceEncoding,
         isFaceRegistered:true,
+        isEmailVerified:true,
     })
 
     const isCreatedAdmin = await Admin.findById(admin._id).select("-password -refreshToken")
@@ -173,27 +179,34 @@ const viewAllDepartments = asyncHandler(async (req, res) => {
 });
 
 const addCourse = asyncHandler(async (req, res) => {
-    /*
+    const { courses, deptId } = req.body;
 
-    take depatment name or deptId from the user,
+    if (!courses || !deptId) {
+        throw new ApiError(400, "Both department ID and courses are required.");
+    }
 
-    */
-    const {course,deptId} = req.body
-    if(!course && !deptId){
-        throw new ApiError(500,"Provide both fields")
+    const dept = await Department.findOne({ deptId });
+    if (!dept) {
+        throw new ApiError(404, "Given department is not valid.");
     }
-    const dept = await Department.findOne({deptId})
-    if(!dept){
-        throw new ApiError(500,"Given department is not Valid")
-        
+
+    // Ensure courses is an array
+    if (!Array.isArray(courses)) {
+        throw new ApiError(400, "Courses should be an array.");
     }
-    dept.courses.push(course)
-    await dept.save({validateBeforeSave:false})
-    return res
-            .status(200)
-            .json(
-                new ApiResponse(200,dept,"changes made successfully")
-            )
+
+    // Add each course to the department's courses array
+    courses.forEach(course => {
+        if (!dept.courses.includes(course)) {
+            dept.courses.push(course);
+        }
+    });
+
+    await dept.save({ validateBeforeSave: false });
+
+    return res.status(200).json(
+        new ApiResponse(200, dept, "Courses added successfully.")
+    );
 });
 
 const deleteDepartment = asyncHandler(async (req, res) => {
@@ -345,7 +358,8 @@ const registerFaculty = asyncHandler(async (req, res) => {
         ...(avatarUrl && { avatar: avatarUrl }),
         ...(faceEmbedding && { 
             faceEmbedding,
-            isFaceRegistered 
+            isFaceRegistered,
+            isEmailVerified:true, 
         })
     })
 
@@ -379,7 +393,7 @@ const deleteFaculty = asyncHandler(async(req,res)=>{
 });
 
 const searchFaculty = asyncHandler(async(req,res)=>{
-    const {email} = req.body
+    const {email} = req.query
     if(!email){
         throw new ApiError(400,"Email is required")
     }
@@ -387,7 +401,7 @@ const searchFaculty = asyncHandler(async(req,res)=>{
     const faculty = await Faculty.findOne({email})
     .select("-password -faceEmbedding -refreshToken")
     .populate("department","name")
-
+    console.log(faculty)
     if(!faculty){
         throw new ApiError(500,"User is not Available")
     }
@@ -521,7 +535,8 @@ const registerStudent = asyncHandler(async (req, res) => {
         ...(faceEmbedding && { 
             faceEmbedding,
             isFaceRegistered 
-        })
+        }),
+        isEmailVerified:true,
     })
 
     if(!student){
@@ -958,6 +973,48 @@ const viewAllNotice = asyncHandler(async (req,res)=>{
     )
 });
 
+const updateDetails = asyncHandler(async (req, res) => {
+    const { fullName, email, phoneNumber } = req.body;
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+
+    // Decode the access token to get the user ID
+    const token = req.cookies.accessToken;
+    console.log(token)
+    if (!token) {
+        throw new ApiError(401, "Access token is required");
+    }
+
+    let userId;
+    try {
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        console.log(decoded)
+        userId = decoded._id;
+    } catch (error) {
+        throw new ApiError(401,error, "Invalid access token");
+    }
+
+    const updateData = {};
+
+    if (fullName) updateData.fullName = fullName;
+    if (email) updateData.email = email;
+    if (phoneNumber) updateData.phoneNumber = phoneNumber;
+
+    if (avatarLocalPath) {
+        const avatar = await uploadOnCloudinary(avatarLocalPath);
+        if (!avatar) {
+            throw new ApiError(400, "Avatar upload failed");
+        }
+        updateData.avatar = avatar.url;
+    }
+
+    const updatedUser = await Admin.findByIdAndUpdate(userId, updateData, { new: true }).select("-password -refreshToken");
+
+    if (!updatedUser) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, updatedUser, "User details updated successfully"));
+});
 export {
 createAdmin,
 createDepartment,
@@ -983,4 +1040,5 @@ removeRegistrationKey,
 addNoticeByAdmin,
 removeNoticeByAdmin,
 viewAllNotice,
+updateDetails,
 };

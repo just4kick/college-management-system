@@ -19,7 +19,6 @@ import RegisterFaculty from "@/components/Dashboard/Faculty/RegisterFaculty";
 import DeleteFaculty from "@/components/Dashboard/Faculty/DeleteFaculty";
 import SearchFaculty from "@/components/Dashboard/Faculty/SearchFaculty";
 import ViewFacultyDeptWise from "@/components/Dashboard/Faculty/ViewFacultyDeptWise";
-import UpdateFacultyDetails from "@/components/Dashboard/Faculty/UpdateFacultyDetail";
 const FacultyControlConfig = {
   sidebarControls: [
     {
@@ -29,7 +28,6 @@ const FacultyControlConfig = {
         { label: "Change Password", component: ChangePassword },
         { label: "User Details", component: UserDetails },
         { label: "Update Face Data", component: UpdateFaceData },
-        { label: "Update Faculty Details", component: UpdateFacultyDetails }
       ],
     },
     {

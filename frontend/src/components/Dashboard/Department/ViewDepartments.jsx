@@ -3,50 +3,39 @@ import React, { useState, useEffect } from "react";
 export default function ViewDepartment() {
   const [currentPage, setCurrentPage] = useState(0);
   const [isLoading, setIsLoading] = useState(true); // Loading state
+  const [departments, setDepartments] = useState([]);
+  const [error, setError] = useState(null);
   const rowsPerPage = 10;
 
-  // Mock data simulating API response
-  const departments = [
-    {
-      _id: "674d1127e3869d361089288e",
-      name: "B.Tech",
-      deptId: "btech201",
-      courses: ["CSE", "IT", "Civil", "ECE"],
-      createdAt: "2024-12-02",
-    },
-    {
-      _id: "674d1127e3869d3610892890",
-      name: "Computer Science",
-      deptId: "cs202",
-      courses: ["AI", "ML", "Cybersecurity"],
-      createdAt: "2024-11-15",
-    },
-    {
-      _id: "674d1127e3869d3610892891",
-      name: "CSBS",
-      deptId: "csbs203",
-      courses: ["Business Analytics", "Big Data"],
-      createdAt: "2024-11-20",
-    },
-    // Add additional mock rows as needed for testing pagination
-    ...Array.from({ length: 30 }, (_, i) => ({
-      _id: `mock-id-${i}`,
-      name: `Department ${i + 1}`,
-      deptId: `dept${i + 1}`,
-      courses: ["Course A", "Course B"],
-      createdAt: `2024-12-${i + 3}`,
-    })),
-  ];
-
-  // Simulate an API call with a delay
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false); // Data loading is complete
-    }, 1500); // Simulate loading delay
-    return () => clearTimeout(timer);
+    const fetchDepartments = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:8000/api/v1/admin/view-dept', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const result = await response.json();
+        if (response.ok) {
+          setDepartments(result.data);
+          setError(null);
+        } else {
+          setError(result.message || "Failed to fetch departments.");
+        }
+      } catch (error) {
+        setError("Something went wrong while fetching departments.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDepartments();
   }, []);
 
-  // Calculate paginated data
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
   const paginatedData = departments.slice(
     currentPage * rowsPerPage,
     currentPage * rowsPerPage + rowsPerPage
@@ -101,7 +90,7 @@ export default function ViewDepartment() {
                       {department.courses.join(", ")}
                     </td>
                     <td className="px-4 py-2 border border-gray-300 dark:border-gray-700">
-                      {department.createdAt}
+                      {new Date(department.createdAt).toLocaleDateString()}
                     </td>
                   </tr>
                 ))}

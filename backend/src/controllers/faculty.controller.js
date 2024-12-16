@@ -11,6 +11,7 @@ import { Faculty } from "../models/faculty.models.js";
 import { Key } from "../models/regkey.models.js";
 import crypto from 'crypto';
 import { sendVerificationEmail } from "../services/email.service.js";
+
 const viewDeptStudents = asyncHandler(async (req, res) => {
   console.log("Starting viewDeptStudents");
 
@@ -99,7 +100,6 @@ const updateFacultyDetails = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to update faculty profile.");
   }
 });
-
 
 const selfRegisterFaculty = asyncHandler(async (req, res) => {
   // TODO: Implement viewDeptStudents

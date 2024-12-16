@@ -28,9 +28,18 @@ export default function DeleteDepartment() {
     setLoading(true);
 
     try {
-      // Simulate deletion request (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log(`Department with ID: ${deptId} deleted.`);
+      const response = await fetch('http://localhost:8000/api/v1/admin/delete-dept', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ deptId }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
       setSuccess(`Department with ID: ${deptId} successfully deleted.`);
       setDeptId(""); // Clear the input field
     } catch (err) {

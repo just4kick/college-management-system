@@ -1,144 +1,129 @@
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner"; 
 
-export default function CreateAdmin() {
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phoneNumber: "",
-    password: "",
-    role: "admin",
-    avatar: null,
-  });
-  const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+export default function CreateAdminForm() {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('admin');
+  const [avatar, setAvatar] = useState(null);
+  const [cameraImage, setCameraImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setFormData((prev) => ({ ...prev, avatar: file }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Start loading
+    setLoading(true);
 
-    if (
-      !formData.fullName ||
-      !formData.email ||
-      !formData.phoneNumber ||
-      !formData.password ||
-      !formData.avatar
-    ) {
-      setError("All fields are required!");
-      setIsLoading(false); // Stop loading
-      return;
-    }
+    const formData = new FormData();
+    formData.append('fullName', fullName);
+    formData.append('email', email);
+    formData.append('phoneNumber', phoneNumber);
+    formData.append('password', password);
+    formData.append('role', role);
+    if (avatar) formData.append('avatar', avatar);
+    if (cameraImage) formData.append('cameraImage', cameraImage);
 
-    // Simulate form submission
-    setTimeout(() => {
-      console.log("Submitted data:", formData);
-      setSuccessMessage("Admin created successfully!");
-      setError("");
-      setFormData({
-        fullName: "",
-        email: "",
-        phoneNumber: "",
-        password: "",
-        role: "admin",
-        avatar: null,
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/admin/create-Admin', {
+        method: 'POST',
+        body: formData,
+        credentials:'include'
       });
-      setIsLoading(false); // Stop loading after success
-    }, 2000); // Simulate API delay
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      setSuccessMessage("Admin created successfully!");
+      // Optionally reset form or redirect
+    } catch (error) {
+      console.error('Error creating admin:', error);
+      alert(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="h-screen flex justify-center items-start bg-gray-100 dark:bg-gray-900">
-      <div className="w-full max-w-md p-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg">
-        <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-          Create Admin
-        </h1>
-
-        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-        {successMessage && <div className="text-green-500 text-sm mb-4">{successMessage}</div>}
-
+    <Card className="w-[400px] max-w-full overflow-hidden justify-center mx-auto">
+      <CardHeader>
+        <CardTitle>Create Admin</CardTitle>
+        <CardDescription>Fill in the details to create a new admin.</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="fullName">Full Name</Label>
             <Input
-              type="text"
               id="fullName"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
+              type="text"
               placeholder="Enter full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
-              type="email"
               id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
+              type="email"
               placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
             <Input
-              type="tel"
               id="phoneNumber"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
+              type="text"
               placeholder="Enter phone number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
-              type="password"
               id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
+              type="password"
               placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
-          <div>
-            <Label htmlFor="avatar">Avatar</Label>
+          <div className="space-y-2">
+            <Label htmlFor="avatar">Upload Avatar</Label>
             <Input
-              type="file"
               id="avatar"
-              name="avatar"
+              type="file"
               accept="image/*"
-              onChange={handleFileChange}
-              required
+              onChange={(e) => setAvatar(e.target.files[0])}
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <Spinner className="w-5 h-5 mr-2 animate-spin" />
-            ) : (
-              "Create Admin"
-            )}
+          <div className="space-y-2">
+            <Label htmlFor="cameraImage">Upload Camera Image</Label>
+            <Input
+              id="cameraImage"
+              type="file"
+              accept="image/*"
+              onChange={(e) => setCameraImage(e.target.files[0])}
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? <Spinner /> : 'Create Admin'}
           </Button>
+          {successMessage && <p className="text-green-500 mt-2">{successMessage}</p>}
         </form>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

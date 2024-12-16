@@ -9,6 +9,8 @@ import Gallery from "@/pages/Gallery";
 import LoginPage from "@/pages/Login";
 import SignupPage from "@/pages/Signup";
 import Team from "@/pages/Team";
+import ForgotPasswordPage from "./pages/ForgotPassword";
+import ResetPasswordForm from "./components/ForgotPageComponents/ResetPasswordForm";
 import ProtectedRoute from "@/layouts/ProtectedRoute";
 // dashboards
 
@@ -104,6 +106,22 @@ export default function App() {
               </MainLayout>
             }
           />
+          <Route
+            path="/forgot-password"
+            element={
+              <MainLayout>
+                <ForgotPasswordPage />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <MainLayout>
+                <ResetPasswordForm />
+              </MainLayout>
+            }
+          />  
 
           {/* DashboardLayout Routes */}
           <Route

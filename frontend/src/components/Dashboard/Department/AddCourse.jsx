@@ -3,27 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 
-export default function AddCourses() {
-  const [formData, setFormData] = useState({
-    deptId: "",
-    courses: [""],
-  });
+export default function AddCourse() {
+  const [formData, setFormData] = useState({ deptId: "", courses: [""] });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Handle change in input fields
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handle courses change (dynamic fields)
-  const handleCourseChange = (index, value) => {
-    const updatedCourses = [...formData.courses];
-    updatedCourses[index] = value;
-    setFormData((prev) => ({ ...prev, courses: updatedCourses }));
-  };
 
   // Add a new course input field
   const addCourseField = () => {
@@ -34,6 +18,18 @@ export default function AddCourses() {
   const removeCourseField = (index) => {
     const updatedCourses = formData.courses.filter((_, i) => i !== index);
     setFormData((prev) => ({ ...prev, courses: updatedCourses }));
+  };
+
+  // Handle input change for department ID
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle input change for courses
+  const handleCourseChange = (index, value) => {
+    const updatedCourses = [...formData.courses];
+    updatedCourses[index] = value;
+    setFormData({ ...formData, courses: updatedCourses });
   };
 
   // Handle form submission
@@ -53,20 +49,29 @@ export default function AddCourses() {
     setLoading(true); // Set loading to true
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Courses Data Submitted:", formData);
+      const response = await fetch('http://localhost:8000/api/v1/admin/update-course', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ deptId, courses }),
+      });
+
+      const result = await response.json();
+      console.log(result)
+      if (!response.ok) throw new Error(result.message);
 
       // Show success message
       setSuccess("Courses successfully added.");
       setFormData({
         deptId: "",
         courses: [""],
-      }); // Reset form data
+      });
     } catch (error) {
-      console.error("Error submitting courses:", error);
+      setError(error.message);
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false); // Set loading to false
     }
   };
 

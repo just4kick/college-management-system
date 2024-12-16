@@ -1,60 +1,85 @@
 import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 
-export default function UserDetail() {
+export default function UserDetails() {
   const [userData, setUserData] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);  // Track loading state
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [updateField, setUpdateField] = useState("");
+  const [updateValue, setUpdateValue] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const mockData = {
-    statusCode: 200,
-    data: {
-      _id: "6747e11eb5c8b29e9d9ec6a9",
-      fullName: "Akash Kumar",
-      email: "notforpersonalusage@gmail.com",
-      phoneNumber: "9433662867",
-      role: "admin",
-      avatar: "http://res.cloudinary.com/cdakash/image/upload/v1732763932/ikwc6qtqzcdbl7tmjnal.jpg",
-      isFaceRegistered: true,
-      registrationKeys: [],
-      notices: [],
-      createdAt: "2024-11-28T03:18:54.467Z",
-      updatedAt: "2024-12-10T10:45:30.583Z",
-      __v: 0,
-    },
-    message: "Data fetched successfully.",
-    success: true,
-  };
-
+  const localData = localStorage.getItem('user')
+  const user = JSON.parse(localData)
+  const role = user.role;
   useEffect(() => {
     const fetchUserData = async () => {
-      setIsLoading(true);  // Set loading state to true when starting to fetch data
+      setIsLoading(true);
       try {
-        // Simulate fetching user data (you can replace this with your actual API call)
-        setTimeout(() => {
-          const result = mockData; // Simulating API response
-          if (result.success && result.statusCode === 200) {
-            setUserData(result.data);
-            setSuccessMessage(result.message);
-            setErrorMessage("");
-          } else {
-            setErrorMessage("Failed to fetch user data.");
-            setSuccessMessage("");
-          }
-          setIsLoading(false);  // Set loading state to false after fetching is done
-        }, 2000); // Simulating delay
+        const response = await fetch(`http://localhost:8000/api/v1/${role}/user-detail`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const result = await response.json();
+        if (result.success && result.statusCode === 200) {
+          setUserData(result.data);
+          setSuccessMessage(result.message);
+          setErrorMessage("");
+        } else {
+          setErrorMessage("Failed to fetch user data.");
+          setSuccessMessage("");
+        }
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
         setErrorMessage("Something went wrong while fetching user data.");
         setSuccessMessage("");
-        setIsLoading(false);  // Set loading state to false if there's an error
+        setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [role]);
+
+  const handleUpdate = (field) => {
+    setUpdateField(field);
+    setUpdateValue(userData[field]);
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmitUpdate = async (e) => {
+    e.preventDefault();
+    setIsUpdating(true);
+
+    const formData = new FormData();
+    formData.append(updateField, updateValue);
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/update-details`, {
+        method: 'PATCH',
+        credentials: 'include',
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      setSuccessMessage("User details updated successfully!");
+      setUserData((prev) => ({ ...prev, [updateField]: updateValue }));
+      setIsDialogOpen(false);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <div className="h-full w-full bg-white dark:bg-gray-800 p-8 shadow-md border border-gray-300 dark:border-gray-700 rounded-md">
@@ -62,10 +87,8 @@ export default function UserDetail() {
         User Details
       </h1>
 
-      {/* Show loading message */}
       {isLoading && <p className="text-lg text-gray-600 dark:text-gray-400">Loading data...</p>}
 
-      {/* Success or Error Message */}
       {successMessage && (
         <div className="text-green-600 text-lg font-medium mb-6">
           {successMessage}
@@ -77,7 +100,6 @@ export default function UserDetail() {
         </div>
       )}
 
-      {/* Display User Data once it is loaded */}
       {userData && !isLoading ? (
         <div className="space-y-8">
           <div className="flex items-center space-x-6">
@@ -93,6 +115,7 @@ export default function UserDetail() {
               <p className="text-lg text-gray-700 dark:text-gray-300 mt-2">
                 Role: <span className="font-medium">{userData.role}</span>
               </p>
+              <Button onClick={() => handleUpdate("fullName")}>Update Name</Button>
             </div>
           </div>
           <div>
@@ -102,6 +125,7 @@ export default function UserDetail() {
             <p className="text-lg text-gray-700 dark:text-gray-300">
               {userData.email}
             </p>
+            <Button onClick={() => handleUpdate("email")}>Update Email</Button>
           </div>
           <div>
             <Label className="block text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
@@ -110,6 +134,7 @@ export default function UserDetail() {
             <p className="text-lg text-gray-700 dark:text-gray-300">
               {userData.phoneNumber}
             </p>
+            <Button onClick={() => handleUpdate("phoneNumber")}>Update Phone Number</Button>
           </div>
           <div>
             <Label className="block text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
@@ -123,6 +148,30 @@ export default function UserDetail() {
       ) : (
         !isLoading && <p className="text-lg text-gray-600 dark:text-gray-400">No user data available.</p>
       )}
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update {updateField}</DialogTitle>
+            <DialogDescription>
+              Please enter the new {updateField}.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmitUpdate}>
+            <Input
+              type="text"
+              value={updateValue}
+              onChange={(e) => setUpdateValue(e.target.value)}
+              required
+            />
+            <DialogFooter>
+              <Button type="submit" className="mt-4" disabled={isUpdating}>
+                {isUpdating ? <Spinner /> : `Change ${updateField}`}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,14 +1,15 @@
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/ui/spinner"; // Assuming you have a Spinner component
 
 export default function ChangePassword() {
   const [passwordData, setPasswordData] = useState({
-    oldPassword: "",
-    newPassword: "",
-    confirmNewPassword: "",
+    oldPassword: '',
+    newPassword: '',
+    confirmNewPassword: '',
   });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -19,99 +20,108 @@ export default function ChangePassword() {
     setPasswordData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Start loading
+    setIsLoading(true); 
 
     if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
       setError("All fields are required!");
-      setIsLoading(false); // Stop loading
+      setIsLoading(false); 
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
       setError("New passwords do not match!");
-      setIsLoading(false); // Stop loading
+      setIsLoading(false); 
       return;
     }
 
-    if (passwordData.newPassword.length < 8) {
-      setError("New password must be at least 8 characters long!");
-      setIsLoading(false); // Stop loading
+    if (passwordData.newPassword.length < 6) {
+      setError("New password must be at least 6 characters long!");
+      setIsLoading(false); 
       return;
     }
 
-    // Simulate API request
-    setTimeout(() => {
-      console.log("Password change request submitted:", passwordData);
-      setSuccessMessage("Password changed successfully!");
-      setError("");
-      setPasswordData({
-        oldPassword: "",
-        newPassword: "",
-        confirmNewPassword: "",
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/admin/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          oldPassword: passwordData.oldPassword,
+          newPassword: passwordData.newPassword,
+        }),
+        credentials:'include',
       });
-      setIsLoading(false); // Stop loading after success
-    }, 2000); // Simulate API delay
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      setSuccessMessage("Password changed successfully!");
+      setPasswordData({
+        oldPassword: '',
+        newPassword: '',
+        confirmNewPassword: '',
+      });
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false); 
+    }
   };
 
   return (
-    <div className="h-screen flex justify-center items-start bg-gray-100 dark:bg-gray-900 pt-6">
-      <div className="w-full max-w-md p-6 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg">
-        <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-          Change Password
-        </h1>
-        
-        {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-        {successMessage && <div className="text-green-500 text-sm mb-4">{successMessage}</div>}
-
+    <Card className="w-[400px] max-w-full overflow-hidden justify-center mx-auto">
+      <CardHeader>
+        <CardTitle>Change Password</CardTitle>
+        <CardDescription>Update your account password.</CardDescription>
+      </CardHeader>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="oldPassword">Old Password</Label>
             <Input
-              type="password"
               id="oldPassword"
+              type="password"
               name="oldPassword"
+              placeholder="Enter old password"
               value={passwordData.oldPassword}
               onChange={handleChange}
-              placeholder="Enter old password"
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
             <Input
-              type="password"
               id="newPassword"
+              type="password"
               name="newPassword"
+              placeholder="Enter new password"
               value={passwordData.newPassword}
               onChange={handleChange}
-              placeholder="Enter new password"
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
             <Input
-              type="password"
               id="confirmNewPassword"
+              type="password"
               name="confirmNewPassword"
+              placeholder="Confirm new password"
               value={passwordData.confirmNewPassword}
               onChange={handleChange}
-              placeholder="Confirm new password"
               required
             />
           </div>
-
+          {error && <p className="text-red-500">{error}</p>}
+          {successMessage && <p className="text-green-500">{successMessage}</p>}
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <Spinner className="w-5 h-5 mr-2 animate-spin" />
-            ) : (
-              "Change Password"
-            )}
+            {isLoading ? <Spinner /> : 'Change Password'}
           </Button>
         </form>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -19,7 +19,7 @@ export default function DeleteFaculty() {
     e.preventDefault();
 
     // Check if the email is empty
-    if (!email) {
+    if (!email.trim()) {
       setError("Email is required.");
       setSuccess("");
       return;
@@ -29,8 +29,19 @@ export default function DeleteFaculty() {
     setError("");
 
     try {
-      // Simulate deleting the faculty member (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulated delay
+      const response = await fetch('http://localhost:8000/api/v1/admin/delete-faculty',{
+        method:'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email }),
+      })
+      console.log(response)
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message);
+
+      
       console.log("Attempting to delete faculty with email:", email);
 
       // Simulate success

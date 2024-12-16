@@ -411,7 +411,7 @@ export function LoginCard({setUser}) {
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-stretch">
-        <Button variant="link" className="w-full">
+        <Button variant="link" className="w-full" onClick={()=>navigate('/forgot-password')}>
           Forgot Password?
         </Button>
       </CardFooter>
