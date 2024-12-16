@@ -2,7 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+import { Gallery } from "../models/gallery.models.js";
 const addImages = asyncHandler(async (req, res) => {
     try {
         const { imageFor } = req.body;
@@ -63,7 +63,7 @@ const removeImage = asyncHandler(async (req, res) => {
     }
 });
 
-const viewGlobalImage = asyncHandler(async(req,res)=>{
+
     const viewGlobalImage = asyncHandler(async (req, res) => {
         try {
             const globalImages = await Gallery.find({ imageFor: "global" });
@@ -80,9 +80,8 @@ const viewGlobalImage = asyncHandler(async(req,res)=>{
         }
     });
     
-})
 
-const viewDeptImage = asyncHandler(async(req,res)=>{
+
     const viewDeptImage = asyncHandler(async (req, res) => {
         const { deptId } = req.params;
     
@@ -106,7 +105,7 @@ const viewDeptImage = asyncHandler(async(req,res)=>{
         }
     });
     
-})
+
 export{
     addImages,
     removeImage,

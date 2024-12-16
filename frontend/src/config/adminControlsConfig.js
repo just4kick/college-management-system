@@ -22,6 +22,8 @@ import ViewRegistrationKey from "@/components/Dashboard/RegistrationKeys/ViewKey
 import AddNotice from "@/components/Dashboard/Notice/AddNotice";
 import ViewNotices from "@/components/Dashboard/Notice/ViewNotices";
 import UpdateFacultyDetails from "@/components/Dashboard/Faculty/UpdateFacultyDetail";
+import AddImages from "@/components/Dashboard/Gallery/AddImages";
+import ViewImages from "@/components/Dashboard/Gallery/ViewImages";
 const AdminControlConfig = {
   sidebarControls: [
     {
@@ -81,6 +83,14 @@ const AdminControlConfig = {
       items: [
         { label: "Add Notice", component: AddNotice },
         { label: "View Notices", component: ViewNotices },
+      ],
+    },
+    {
+      label: "Gallery Controls",
+      icon: Bell,
+      items: [
+        { label: "Add Images", component: AddImages },
+        { label: "View Images", component: ViewImages },
       ],
     },
   ],

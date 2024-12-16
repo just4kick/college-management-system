@@ -18,12 +18,13 @@ app.use(cookieParser())
 import adminRouter from "./routes/admin.routes.js"
 import facultyRouter from "./routes/faculty.routes.js"
 import studentRouter from "./routes/student.routes.js"
-
+import galleryRouter from "./routes/gallery.routes.js"
 
 //routes Declaration
 app.use("/api/v1/admin",adminRouter)
 app.use("/api/v1/faculty",facultyRouter)
 app.use("/api/v1/student",studentRouter)
+app.use("/api/v1/gallery",galleryRouter)
 
 app.get("/api/v1/check-auth",checkAuth)
 app.get("/api/v1/verify-email", verifyEmail)

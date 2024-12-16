@@ -147,6 +147,11 @@ const createDepartment = asyncHandler(async (req, res) => {
     if(!createdDept){
         throw new ApiError(500,"Something went wrong while creating department.")
     }
+    await Key.create({
+        departmentId: createdDept._id,
+        facultyKeys: [],
+        studentKeys: [],
+      });
     return res
             .status(200)
             .json(
@@ -632,60 +637,62 @@ const viewAllStudentDeptWise = asyncHandler(async (req, res) => {
 
 const generateRegistrationKey = asyncHandler(async (req, res) => {
     const { deptId, facultyKeys, studentKeys } = req.body;
-
-    
+  
     const normalizedFacultyKeys = facultyKeys ? 
-        (Array.isArray(facultyKeys) ? facultyKeys : [facultyKeys]) : [];
+      (Array.isArray(facultyKeys) ? facultyKeys : [facultyKeys]) : [];
     const normalizedStudentKeys = studentKeys ? 
-        (Array.isArray(studentKeys) ? studentKeys : [studentKeys]) : [];
-
+      (Array.isArray(studentKeys) ? studentKeys : [studentKeys]) : [];
+  
     if (normalizedFacultyKeys.length === 0 && normalizedStudentKeys.length === 0) {
-        throw new ApiError(400, "At least one key is required");
+      throw new ApiError(400, "At least one key is required");
     }
-
-    //  email format valdiating
+  
+  
     function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
     }
-
-   
     if (normalizedFacultyKeys.length > 0) {
-        for (let i = 0; i < normalizedFacultyKeys.length; i++) {
-            if (!isValidEmail(normalizedFacultyKeys[i].key)) {
-                throw new ApiError(401, `Invalid faculty email at index ${i}`);
-            }
+      for (let i = 0; i < normalizedFacultyKeys.length; i++) {
+        if (!isValidEmail(normalizedFacultyKeys[i].key)) {
+          throw new ApiError(401, `Invalid faculty email at index ${i}`);
         }
+      }
     }
-
+  
 
     if (normalizedStudentKeys.length > 0) {
-        for (let i = 0; i < normalizedStudentKeys.length; i++) {
-            if (!isValidEmail(normalizedStudentKeys[i].key)) {
-                throw new ApiError(401, `Invalid student email at index ${i}`);
-            }
+      for (let i = 0; i < normalizedStudentKeys.length; i++) {
+        if (!isValidEmail(normalizedStudentKeys[i].key)) {
+          throw new ApiError(401, `Invalid student email at index ${i}`);
         }
+      }
     }
-
-    const dept = await Department.findOne({ deptId });
+  
+    const dept = await Department.findOne({ deptId: deptId.trim().toLowerCase() });
     if (!dept?._id) {
-        throw new ApiError(400, "Invalid department ID");
+      throw new ApiError(400, "Invalid department ID");
     }
-
-    const keys = await Key.create({
-        departmentId: dept?._id,
-        facultyKeys: normalizedFacultyKeys,
-        studentKeys: normalizedStudentKeys,
-    });
-
+  
+    const keys = await Key.findOneAndUpdate(
+      { departmentId: dept._id },
+      {
+        $addToSet: {
+          facultyKeys: { $each: normalizedFacultyKeys },
+          studentKeys: { $each: normalizedStudentKeys },
+        },
+      },
+      { new: true, upsert: true }
+    );
+  
     if (!keys) {
-        throw new ApiError(400, "Key creation failed");
+      throw new ApiError(400, "Key creation failed");
     }
-
+  
     return res
-        .status(200)
-        .json(new ApiResponse(200, keys, "Keys generated successfully"));
-});
+      .status(200)
+      .json(new ApiResponse(200, keys, "Keys generated successfully"));
+  });
 
 const viewRegistrationKey = asyncHandler(async (req, res) => {
     // TODO: Implement viewRegistrationKey
@@ -707,191 +714,102 @@ const viewRegistrationKey = asyncHandler(async (req, res) => {
 });
 
 const revokeRegistrationKey = asyncHandler(async (req, res) => {
-    // TODO: Implement revokeRegistrationKey
-    const {deptId,searchKey,role} = req.body
-    const dept = await Department.findOne({deptId})
-    if(!dept){
-        throw new ApiError(500,"DeptId is invalid")
-    }
-    if(searchKey && Array.isArray(searchKey)){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "facultyKeys.key": searchKey }, 
-                {
-                    $set: { "facultyKeys.$[elem].isActive": false },
-                },
-                {
-                    arrayFilters: [{ "elem.key":  { $in: searchKey } }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key revoked successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "studentKeys.key": searchKey },
-                {
-                    $set: { "studentKeys.$[elem].isActive": false }, 
-                },
-                {
-                    arrayFilters: [{ "elem.key":  { $in: searchKey } }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key revoked successfully",
-                data: updatedDocument,
-            });
-        }
-    }else if(searchKey){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "facultyKeys.key": searchKey }, 
-                {
-                    $set: { "facultyKeys.$[elem].isActive": false },
-                },
-                {
-                    arrayFilters: [{ "elem.key": searchKey }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key revoked successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "studentKeys.key": searchKey },
-                {
-                    $set: { "studentKeys.$[elem].isActive": false }, 
-                },
-                {
-                    arrayFilters: [{ "elem.key": searchKey }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key revoked successfully",
-                data: updatedDocument,
-            });
-        }
-    }else{
-        throw new ApiError(500,"Search Key not found")
+    const { searchKey, role } = req.body;
+    const normalizedRole = role.trim().toLowerCase();
+
+    const keyDoc = await Key.findOne({
+        $or: [
+            { "facultyKeys.key": searchKey },
+            { "studentKeys.key": searchKey }
+        ]
+    });
+
+    if (!keyDoc) {
+        throw new ApiError(500, "Key not found");
     }
 
+    if (normalizedRole === "faculty") {
+        const updatedDocument = await Key.findOneAndUpdate(
+            { _id: keyDoc._id, "facultyKeys.key": searchKey },
+            { $set: { "facultyKeys.$.isActive": false } },
+            { new: true }
+        );
+
+        if (!updatedDocument) {
+            throw new ApiError(404, "Key not found or department does not exist");
+        }
+
+        return res.status(200).json({
+            message: "Faculty key revoked successfully",
+            data: updatedDocument,
+        });
+    } else if (normalizedRole === "student") {
+        const updatedDocument = await Key.findOneAndUpdate(
+            { _id: keyDoc._id, "studentKeys.key": searchKey },
+            { $set: { "studentKeys.$.isActive": false } },
+            { new: true }
+        );
+
+        if (!updatedDocument) {
+            throw new ApiError(404, "Key not found or department does not exist");
+        }
+
+        return res.status(200).json({
+            message: "Student key revoked successfully",
+            data: updatedDocument,
+        });
+    } else {
+        throw new ApiError(500, "Invalid role");
+    }
 });
 
 const grantRegistrationKey = asyncHandler(async (req, res) => {
-    // TODO: Implement revokeRegistrationKey
-    const {deptId,searchKey,role} = req.body
-    const dept = await Department.findOne({deptId})
-    if(!dept){
-        throw new ApiError(500,"DeptId is invalid")
+    const { searchKey, role } = req.body;
+    const normalizedRole = role.trim().toLowerCase();
+
+    const keyDoc = await Key.findOne({
+        $or: [
+            { "facultyKeys.key": searchKey },
+            { "studentKeys.key": searchKey }
+        ]
+    });
+
+    if (!keyDoc) {
+        throw new ApiError(500, "Key not found");
     }
-    if(searchKey && Array.isArray(searchKey)){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "facultyKeys.key": searchKey }, 
-                {
-                    $set: { "facultyKeys.$[elem].isActive": true },
-                },
-                {
-                    arrayFilters: [{ "elem.key":  { $in: searchKey } }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key Grant successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "studentKeys.key": searchKey },
-                {
-                    $set: { "studentKeys.$[elem].isActive": true }, 
-                },
-                {
-                    arrayFilters: [{ "elem.key":  { $in: searchKey } }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key Grant successfully",
-                data: updatedDocument,
-            });
+
+    if (normalizedRole === "faculty") {
+        const updatedDocument = await Key.findOneAndUpdate(
+            { _id: keyDoc._id, "facultyKeys.key": searchKey },
+            { $set: { "facultyKeys.$.isActive": true } },
+            { new: true }
+        );
+
+        if (!updatedDocument) {
+            throw new ApiError(404, "Key not found or department does not exist");
         }
-    }else if(searchKey){
-        if(role==="faculty"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "facultyKeys.key": searchKey }, 
-                {
-                    $set: { "facultyKeys.$[elem].isActive": true },
-                },
-                {
-                    arrayFilters: [{ "elem.key": searchKey }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            return res.status(200).json({
-                message: "Faculty key Grant successfully",
-                data: updatedDocument,
-            });
-        }else if(role==="student"){
-            const updatedDocument = await Key.findOneAndUpdate(
-                { departmentId: dept?._id, "studentKeys.key": searchKey },
-                {
-                    $set: { "studentKeys.$[elem].isActive": true }, 
-                },
-                {
-                    arrayFilters: [{ "elem.key": searchKey }], 
-                    new: true,
-                }
-            );
-            
-            if (!updatedDocument) {
-                throw new ApiError(404, "Key not found or department does not exist");
-            }
-            
-            return res.status(200).json({
-                message: "Student key Grant successfully",
-                data: updatedDocument,
-            });
+
+        return res.status(200).json({
+            message: "Faculty key granted successfully",
+            data: updatedDocument,
+        });
+    } else if (normalizedRole === "student") {
+        const updatedDocument = await Key.findOneAndUpdate(
+            { _id: keyDoc._id, "studentKeys.key": searchKey },
+            { $set: { "studentKeys.$.isActive": true } },
+            { new: true }
+        );
+
+        if (!updatedDocument) {
+            throw new ApiError(404, "Key not found or department does not exist");
         }
-    }else{
-        throw new ApiError(500,"Search Key not found")
+
+        return res.status(200).json({
+            message: "Student key granted successfully",
+            data: updatedDocument,
+        });
+    } else {
+        throw new ApiError(500, "Invalid role");
     }
 });
 

@@ -1,69 +1,82 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button"; // Assuming a styled Button component
-import { Spinner } from "@/components/ui/spinner"; // Assuming a Spinner component for loading
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 
-export default function GenerateRegistrationKey() {
-  const [facultyKeys, setFacultyKeys] = useState([{ key: "", isActive: true }]);
-  const [studentKeys, setStudentKeys] = useState([{ key: "", isActive: true }]);
-  const [isLoading, setIsLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error message
-  const [success, setSuccess] = useState(""); // Success message
+const GenerateKey = () => {
+  const [deptId, setDeptId] = useState('');
+  const [facultyKeys, setFacultyKeys] = useState([]);
+  const [studentKeys, setStudentKeys] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
-  const handleAddKey = (type) => {
-    if (type === "faculty") {
-      setFacultyKeys([...facultyKeys, { key: "", isActive: true }]);
-    } else {
-      setStudentKeys([...studentKeys, { key: "", isActive: true }]);
-    }
+  const handleAddFacultyKey = () => {
+    setFacultyKeys([...facultyKeys, ""]);
   };
 
-  const handleRemoveKey = (type, index) => {
-    if (type === "faculty") {
-      const updatedKeys = facultyKeys.filter((_, i) => i !== index);
-      setFacultyKeys(updatedKeys);
-    } else {
-      const updatedKeys = studentKeys.filter((_, i) => i !== index);
-      setStudentKeys(updatedKeys);
-    }
+  const handleAddStudentKey = () => {
+    setStudentKeys([...studentKeys, ""]);
   };
 
-  const handleKeyChange = (type, index, value) => {
-    if (type === "faculty") {
-      const updatedKeys = facultyKeys.map((keyObj, i) =>
-        i === index ? { ...keyObj, key: value } : keyObj
-      );
-      setFacultyKeys(updatedKeys);
-    } else {
-      const updatedKeys = studentKeys.map((keyObj, i) =>
-        i === index ? { ...keyObj, key: value } : keyObj
-      );
-      setStudentKeys(updatedKeys);
-    }
+  const handleFacultyKeyChange = (index, value) => {
+    const newKeys = [...facultyKeys];
+    newKeys[index] = value.trim().toLowerCase();
+    setFacultyKeys(newKeys);
   };
 
-  const handleSubmit = () => {
-    if (facultyKeys.some((keyObj) => !keyObj.key) || studentKeys.some((keyObj) => !keyObj.key)) {
-      setError("All keys must be filled in.");
-      setSuccess(""); // Clear success message before submitting
-      return;
-    }
+  const handleStudentKeyChange = (index, value) => {
+    const newKeys = [...studentKeys];
+    newKeys[index] = value.trim().toLowerCase();
+    setStudentKeys(newKeys);
+  };
 
+  const handleRemoveFacultyKey = (index) => {
+    const newKeys = facultyKeys.filter((_, i) => i !== index);
+    setFacultyKeys(newKeys);
+  };
+
+  const handleRemoveStudentKey = (index) => {
+    const newKeys = studentKeys.filter((_, i) => i !== index);
+    setStudentKeys(newKeys);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError(""); // Clear error before submitting
     setIsLoading(true); // Start loading
     setSuccess(""); // Clear any previous success message
 
     const payload = {
-      facultyKeys,
-      studentKeys,
+      deptId: deptId.trim().toLowerCase(),
+      facultyKeys: facultyKeys.map(key => ({ key })),
+      studentKeys: studentKeys.map(key => ({ key })),
     };
 
-    console.log("Payload to submit: ", payload);
+    try {
+      const response = await fetch('http://localhost:8000/api/v1/admin/generate-keys', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        credentials: 'include',
+      });
 
-    // Simulate submitting the data
-    setTimeout(() => {
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      setSuccess("Registration keys submitted successfully!");
+      setDeptId('');
+      setFacultyKeys([]);
+      setStudentKeys([]);
+    } catch (error) {
+      setError(error.message);
+    } finally {
       setIsLoading(false); // Stop loading
-      setSuccess("Registration keys submitted successfully!"); // Set success message
-    }, 2000); // Simulate a delay of 2 seconds (replace with actual API call)
+    }
   };
 
   return (
@@ -79,77 +92,71 @@ export default function GenerateRegistrationKey() {
         {/* Success Message */}
         {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
 
-        {/* Faculty Keys */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Faculty Keys
-          </h2>
-          {facultyKeys.map((keyObj, index) => (
-            <div key={index} className="flex items-center mb-2">
-              <input
-                type="text"
-                value={keyObj.key}
-                onChange={(e) => handleKeyChange("faculty", index, e.target.value)}
-                placeholder="Enter faculty key"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-              />
-              <Button
-                onClick={() => handleRemoveKey("faculty", index)}
-                className="ml-2"
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-          <Button
-            onClick={() => handleAddKey("faculty")}
-            className="mt-2"
-            disabled={isLoading} // Disable while loading
-          >
-            Add Faculty Key
-          </Button>
-        </div>
+        <form onSubmit={handleSubmit}>
+          {/* Department ID */}
+          <div className="mb-6">
+            <Label htmlFor="deptId">Department ID</Label>
+            <Input
+              id="deptId"
+              value={deptId}
+              onChange={(e) => setDeptId(e.target.value.trim().toLowerCase())}
+              required
+            />
+          </div>
 
-        {/* Student Keys */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Student Keys
-          </h2>
-          {studentKeys.map((keyObj, index) => (
-            <div key={index} className="flex items-center mb-2">
-              <input
-                type="text"
-                value={keyObj.key}
-                onChange={(e) => handleKeyChange("student", index, e.target.value)}
-                placeholder="Enter student key"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-              />
-              <Button
-                onClick={() => handleRemoveKey("student", index)}
-                className="ml-2"
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-          <Button
-            onClick={() => handleAddKey("student")}
-            className="mt-2"
-            disabled={isLoading} // Disable while loading
-          >
-            Add Student Key
-          </Button>
-        </div>
+          {/* Faculty Keys */}
+          <div className="mb-6">
+            <Label htmlFor="facultyKeys">Faculty Emails</Label>
+            {facultyKeys.map((key, index) => (
+              <div key={index} className="flex items-center mb-2">
+                <Input
+                  id={`facultyKey-${index}`}
+                  value={key}
+                  onChange={(e) => handleFacultyKeyChange(index, e.target.value)}
+                  className="mr-2"
+                  type="email"
+                  required
+                />
+                <Button type="button" onClick={() => handleRemoveFacultyKey(index)}>
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={handleAddFacultyKey} className="mt-2">
+              Add Faculty Email
+            </Button>
+          </div>
 
-        {/* Submit Button */}
-        <Button
-          onClick={handleSubmit}
-          className="mt-4 w-full"
-          disabled={isLoading} // Disable while loading
-        >
-          {isLoading ? <Spinner /> : "Submit Keys"}
-        </Button>
+          {/* Student Keys */}
+          <div className="mb-6">
+            <Label htmlFor="studentKeys">Student Emails</Label>
+            {studentKeys.map((key, index) => (
+              <div key={index} className="flex items-center mb-2">
+                <Input
+                  id={`studentKey-${index}`}
+                  value={key}
+                  onChange={(e) => handleStudentKeyChange(index, e.target.value)}
+                  className="mr-2"
+                  type="email"
+                  required
+                />
+                <Button type="button" onClick={() => handleRemoveStudentKey(index)}>
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={handleAddStudentKey} className="mt-2">
+              Add Student Email
+            </Button>
+          </div>
+
+          <Button type="submit" disabled={isLoading} className="mt-4">
+            {isLoading ? <Spinner /> : 'Generate Keys'}
+          </Button>
+        </form>
       </div>
     </div>
   );
-}
+};
+
+export default GenerateKey;
