@@ -223,7 +223,8 @@ const logout = asyncHandler(async (req, res) => {
 
 const checkAuth = asyncHandler(async(req,res)=>{
    const token = req.cookies.accessToken;
-  if (token) {
+
+  if (token && jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)) {
     return res.status(200).json({ ok: true });
   } else {
     return res.status(401).json({ ok: false });
