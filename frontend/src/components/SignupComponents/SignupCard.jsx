@@ -23,28 +23,27 @@ export default function SignupCard() {
     fullName: "",
     email: "",
     phoneNumber: "",
-    department: "",
-    avatar: "",
-    cameraImage: "",
+    deptId: "",
+    avatar: null,
+    cameraImage: null,
     password: "",
   });
-
   const [studentData, setStudentData] = useState({
     fullName: "",
     email: "",
     phoneNumber: "",
-    department: "",
+    deptId: "",
     course: "",
     year: "",
     session: "",
-    avatar: "",
-    cameraImage: "",
+    avatar: null,
+    cameraImage: null,
     password: "",
   });
 
-  // Reference for webcam
   const webcamRef = useRef(null);
   const navigate = useNavigate();
+
   const dataURLToBlob = (dataURL) => {
     const arr = dataURL.split(",");
     const mime = arr[0].match(/:(.*?);/)[1];
@@ -56,28 +55,17 @@ export default function SignupCard() {
     }
     return new Blob([u8arr], { type: mime });
   };
-  // const handleFacultySubmit = (e) => {
-  //   e.preventDefault()
-  //   console.log('Faculty Data:', facultyData)
-  // }
 
-  // const handleStudentSubmit = (e) => {
-  //   e.preventDefault()
-  //   console.log('Student Data:', studentData)
-  // }
-
-  // Capturing  image from webcam
-  const captureImage = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (userType === "faculty") {
-        setFacultyData({ ...facultyData, cameraImage: imageSrc });
-      } else {
-        setStudentData({ ...studentData, cameraImage: imageSrc });
-      }
+  const handleCapture = () => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (userType === "faculty") {
+      setFacultyData({ ...facultyData, cameraImage: imageSrc });
+    } else {
+      setStudentData({ ...studentData, cameraImage: imageSrc });
     }
-  }, [webcamRef, facultyData, studentData, userType]);
-  // submitting the button handles
+    setCameraActive(false);
+  };
+
   const handleFacultySubmit = async (e) => {
     e.preventDefault();
     setIsLoadingFaculty(true);
@@ -96,7 +84,7 @@ export default function SignupCard() {
       });
 
       const response = await fetch(
-        "http://localhost:8000/api/v1/faculty/self-register",
+        "http://localhost:8000/api/v1/faculty/self-register-faculty",
         {
           method: "POST",
           body: formData,
@@ -135,7 +123,7 @@ export default function SignupCard() {
       });
 
       const response = await fetch(
-        "http://localhost:8000/api/v1/student/self-register",
+        "http://localhost:8000/api/v1/student/self-register-student",
         {
           method: "POST",
           body: formData,
@@ -164,8 +152,8 @@ export default function SignupCard() {
         email: "",
         phoneNumber: "",
         department: "",
-        avatar: "",
-        cameraImage: "",
+        avatar: null,
+        cameraImage: null,
         password: "",
       });
     } else {
@@ -177,8 +165,8 @@ export default function SignupCard() {
         course: "",
         year: "",
         session: "",
-        avatar: "",
-        cameraImage: "",
+        avatar: null,
+        cameraImage: null,
         password: "",
       });
     }
@@ -229,8 +217,8 @@ export default function SignupCard() {
                 type="text"
                 value={
                   userType === "faculty"
-                    ? facultyData.fullName
-                    : studentData.fullName
+                    ? facultyData.fullName || ""
+                    : studentData.fullName || ""
                 }
                 onChange={(e) =>
                   userType === "faculty"
@@ -252,7 +240,7 @@ export default function SignupCard() {
                 id="email"
                 type="email"
                 value={
-                  userType === "faculty" ? facultyData.email : studentData.email
+                  userType === "faculty" ? facultyData.email || "" : studentData.email || ""
                 }
                 onChange={(e) =>
                   userType === "faculty"
@@ -269,8 +257,8 @@ export default function SignupCard() {
                 type="text"
                 value={
                   userType === "faculty"
-                    ? facultyData.phoneNumber
-                    : studentData.phoneNumber
+                    ? facultyData.phoneNumber || ""
+                    : studentData.phoneNumber || ""
                 }
                 onChange={(e) =>
                   userType === "faculty"
@@ -286,46 +274,38 @@ export default function SignupCard() {
                 placeholder="Enter your phone number"
               />
             </div>
-            {userType === "faculty" && (
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Input
-                  id="department"
-                  type="text"
-                  value={facultyData.department}
-                  onChange={(e) =>
-                    setFacultyData({
-                      ...facultyData,
-                      department: e.target.value,
-                    })
-                  }
-                  placeholder="Enter your department"
-                />
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="deptId">Department ID</Label>
+              <Input
+                id="deptId"
+                type="text"
+                value={
+                  userType === "faculty"
+                    ? facultyData.deptId || ""
+                    : studentData.deptId || ""
+                }
+                onChange={(e) =>
+                  userType === "faculty"
+                    ? setFacultyData({
+                        ...facultyData,
+                        deptId: e.target.value,
+                      })
+                    : setStudentData({
+                        ...studentData,
+                        deptId: e.target.value,
+                      })
+                }
+                placeholder="Enter your department ID"
+              />
+            </div>
             {userType === "student" && (
               <>
-                <div className="space-y-2">
-                  <Label htmlFor="department">Department</Label>
-                  <Input
-                    id="department"
-                    type="text"
-                    value={studentData.department}
-                    onChange={(e) =>
-                      setStudentData({
-                        ...studentData,
-                        department: e.target.value,
-                      })
-                    }
-                    placeholder="Enter your department"
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="course">Course</Label>
                   <Input
                     id="course"
                     type="text"
-                    value={studentData.course}
+                    value={studentData.course || ""}
                     onChange={(e) =>
                       setStudentData({ ...studentData, course: e.target.value })
                     }
@@ -337,7 +317,7 @@ export default function SignupCard() {
                   <Input
                     id="year"
                     type="text"
-                    value={studentData.year}
+                    value={studentData.year || ""}
                     onChange={(e) =>
                       setStudentData({ ...studentData, year: e.target.value })
                     }
@@ -349,7 +329,7 @@ export default function SignupCard() {
                   <Input
                     id="session"
                     type="text"
-                    value={studentData.session}
+                    value={studentData.session || ""}
                     onChange={(e) =>
                       setStudentData({
                         ...studentData,
@@ -370,8 +350,8 @@ export default function SignupCard() {
                 type="password"
                 value={
                   userType === "faculty"
-                    ? facultyData.password
-                    : studentData.password
+                    ? facultyData.password || ""
+                    : studentData.password || ""
                 }
                 onChange={(e) =>
                   userType === "faculty"
@@ -387,8 +367,6 @@ export default function SignupCard() {
                 placeholder="Enter your password"
               />
             </div>
-
-            {/* Avatar Upload */}
             <div className="space-y-2">
               <Label htmlFor="avatarUpload">Upload Avatar</Label>
               <Input
@@ -411,8 +389,6 @@ export default function SignupCard() {
                 }}
               />
             </div>
-
-            {/* Camera Capture */}
             <div className="space-y-2">
               <Button
                 type="button"
@@ -433,14 +409,12 @@ export default function SignupCard() {
               )}
               <Button
                 type="button"
-                onClick={captureImage}
+                onClick={handleCapture}
                 disabled={!cameraActive}
               >
                 Capture Image
               </Button>
             </div>
-
-            {/* Display Captured Image */}
             {(facultyData.cameraImage || studentData.cameraImage) && (
               <div className="mt-2">
                 <p className="text-sm">Captured Image Preview</p>
@@ -451,7 +425,6 @@ export default function SignupCard() {
                 />
               </div>
             )}
-
             <Button
               type="submit"
               className="mt-4 w-full"

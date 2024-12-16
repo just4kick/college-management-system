@@ -27,7 +27,7 @@ app.use("/api/v1/student",studentRouter)
 app.use("/api/v1/gallery",galleryRouter)
 
 app.get("/api/v1/check-auth",checkAuth)
-app.get("/api/v1/verify-email", verifyEmail)
+app.get("/verify-email", verifyEmail)
 
 
 export {app}

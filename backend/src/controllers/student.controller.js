@@ -9,7 +9,7 @@ import {Department} from "../models/dept.models.js"
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import crypto from 'crypto';
-
+import { sendVerificationEmail } from "../services/email.service.js";
 const updatePersonalDetails = asyncHandler(async (req, res) => {
     // TODO: Implement updatePersonalDetails
     const student = await Student.findById(req.user?._id).select("-refershToken -password -faceEmbedding")
@@ -63,19 +63,16 @@ const selfRegisterStudent = asyncHandler(async (req, res) => {
     const verificationExpiry = new Date(Date.now() + 24*60*60*1000);
     const isActiveStudentyKey = await Key.findOne({
         departmentId: dept?._id,
-        "facultyKeys.key": email,
-        "facultyKeys.isActive": true,
+        "studentKeys.key": email,
+        "studentKeys.isActive": true,
     });
     
     if (!isActiveStudentyKey) {
         return res
     .status(400)
-    .json(new ApiResponse(400, faculty, "You are not authorized to register. No active key found."));
+    .json(new ApiResponse(400, {}, "You are not authorized to register. No active key found."));
     }
 
-      if(!matchingKey.isActive){
-        throw new ApiError(402,"You are not authorized to register Yourself. ")
-      }
     const avatarLocalPath = req.files?.avatar[0].path
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const cameraImageLocalPath = req.files?.cameraImage[0].path
@@ -101,7 +98,8 @@ const selfRegisterStudent = asyncHandler(async (req, res) => {
     if(!student){
         throw new ApiError(500,"Student registration failed")
     }
-
+    const temp = await sendVerificationEmail(email,verificationToken,'student')
+      console.log("Email verifiaction controller",temp);
     return res
             .status(200)
             .json(

@@ -10,6 +10,7 @@ import { Department } from "../models/dept.models.js";
 import { Faculty } from "../models/faculty.models.js";
 import { Key } from "../models/regkey.models.js";
 import crypto from 'crypto';
+import { sendVerificationEmail } from "../services/email.service.js";
 const viewDeptStudents = asyncHandler(async (req, res) => {
   console.log("Starting viewDeptStudents");
 
@@ -166,7 +167,9 @@ if (!isActiveFacultyKey) {
   if (!faculty) {
     throw new ApiError(500, "Faculty registration failed");
   }
-
+  const temp = await sendVerificationEmail(email,verificationToken,'faculty')
+  console.log("Email verifiaction controller",temp);
+  
   return res
     .status(200)
     .json(new ApiResponse(200, faculty, "Faculty registraion completed."));

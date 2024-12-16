@@ -356,6 +356,7 @@ const updateFaceData = asyncHandler(async(req,res)=>{
         new ApiResponse(200,user,"Face data updated succesfully.")
     )
 });
+
 const verifyEmail = asyncHandler(async (req, res) => {
     const { token, role } = req.query;
     
