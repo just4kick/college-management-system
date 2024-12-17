@@ -1,218 +1,131 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button"; // Assuming you have a styled Button component
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function ViewStudentDeptWise() {
-  const [departments, setDepartments] = useState([]);
-  const [departmentPages, setDepartmentPages] = useState({});
-  const [loading, setLoading] = useState(true); // Loading state
-  const studentsPerPage = 10; // Set number of students per page for pagination
+  const [data, setData] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [role, setRole] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const studentsPerPage = 10;
 
-  // Mock API Response with additional fields
-  const mockData = [
-    {
-      _id: "674d1127e3869d361089288e",
-      departmentName: "B.Tech",
-      students: [
-        { name: "John Doe", course: "B.Tech", year: "2nd", session: "2022-2026" },
-        { name: "Jane Smith", course: "B.Tech", year: "3rd", session: "2021-2025" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-        { name: "Michael Johnson", course: "B.Tech", year: "1st", session: "2023-2027" },
-
-        // other students...
-      ],
-    },
-    {
-      _id: "674d1293c4df6c286d1f28cf",
-      departmentName: "Business Administration",
-      students: [
-        { name: "Chris Martin", course: "MBA", year: "1st", session: "2023-2025" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },{ name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-        { name: "Liam Clark", course: "MBA", year: "2nd", session: "2022-2024" },
-
-        // other students...
-      ],
-    },
-    {
-      _id: "674d1180e3869d3610892892",
-      departmentName: "Computer Science",
-      students: [
-        { name: "Akash Yadav", course: "MCA", year: "2nd", session: "2022-2024" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        { name: "Sumit Sharma", course: "MCA", year: "1st", session: "2023-2025" },
-        // other students...
-      ],
-    },
-  ];
-
+  // Extract role from localStorage
   useEffect(() => {
-    // Simulate an API call with loading state
-    setLoading(true);
-    setTimeout(() => {
-      // Set mock data after delay
-      setDepartments(mockData);
-      // Initialize current page for each department
-      const initialPageState = mockData.reduce((acc, dept) => {
-        acc[dept._id] = 1; // Set initial page to 1 for each department
-        return acc;
-      }, {});
-      setDepartmentPages(initialPageState);
-      setLoading(false); // Stop loading when data is fetched
-    }, 2000); // Simulate 2 seconds delay
+    const storedRole = localStorage.getItem("user");
+    if (storedRole) {
+      const parsedRole = JSON.parse(storedRole);
+      setRole(parsedRole.role);
+    }
   }, []);
 
-  // Handle pagination logic for each department
-  const paginateStudents = (students, deptId) => {
-    const currentPage = departmentPages[deptId] || 1;
-    const indexOfLastStudent = currentPage * studentsPerPage;
-    const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-    return students.slice(indexOfFirstStudent, indexOfLastStudent);
-  };
+  // Fetch students department-wise
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch(`http://localhost:8000/api/v1/${role}/view-student-deptWise`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
 
-  // Handle page change for a department
-  const handlePageChange = (deptId, direction) => {
-    setDepartmentPages((prevState) => {
-      const currentPage = prevState[deptId] || 1;
-      const newPage = direction === "next" ? currentPage + 1 : currentPage - 1;
-      return { ...prevState, [deptId]: newPage };
-    });
-  };
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+
+        setData(result.data);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("An error occurred while fetching the data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (role) {
+      fetchData();
+    }
+  }, [role]);
+
+  // Pagination logic
+  const indexOfLastStudent = currentPage * studentsPerPage;
+  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
+  const currentDepartments = data.slice(indexOfFirstStudent, indexOfLastStudent);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="min-h-screen flex items-start justify-center bg-gray-50 dark:bg-gray-900 pt-10">
-      <div className="w-full max-w-4xl bg-white dark:bg-gray-800 p-6 shadow-md rounded-md">
-        <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-          View Students Department Wise
-        </h1>
-
-        {loading ? (
-          <div className="text-center text-gray-500 dark:text-gray-400">
-            <p>Loading data...</p>
-          </div>
-        ) : (
-          departments.map((department) => (
-            <div key={department._id} className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {department.departmentName}
-              </h2>
-
-              {/* Department Table */}
-              {department.students.length > 0 ? (
-                <div
-                  className="overflow-x-auto mt-4 bg-gray-100 dark:bg-gray-800 p-4 rounded-md shadow-md"
-                  style={{ maxHeight: "400px", overflowY: "auto" }} // Set fixed height
-                >
-                  <table className="min-w-full bg-white dark:bg-gray-800 rounded-md shadow-md">
-                    <thead>
-                      <tr>
-                        <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">
-                          Student Name
-                        </th>
-                        <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">
-                          Course
-                        </th>
-                        <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">
-                          Year
-                        </th>
-                        <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-300">
-                          Session
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginateStudents(department.students, department._id).map((student, index) => (
-                        <tr key={index} className="border-t border-gray-200 dark:border-gray-700">
-                          <td className="px-4 py-2">{student.name}</td>
-                          <td className="px-4 py-2">{student.course}</td>
-                          <td className="px-4 py-2">{student.year}</td>
-                          <td className="px-4 py-2">{student.session}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Pagination Controls */}
-                  <div className="mt-4 flex items-center justify-between">
-                    <Button
-                      onClick={() => handlePageChange(department._id, "prev")}
-                      disabled={departmentPages[department._id] === 1}
-                      className="px-4 py-2 text-sm"
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Page {departmentPages[department._id]} of{" "}
-                      {Math.ceil(department.students.length / studentsPerPage)}
-                    </span>
-                    <Button
-                      onClick={() => handlePageChange(department._id, "next")}
-                      disabled={
-                        department.students.length <= departmentPages[department._id] * studentsPerPage
-                      }
-                      className="px-4 py-2 text-sm"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-gray-500 dark:text-gray-400 mt-2">
-                  No students found in this department.
-                </p>
-              )}
+    <div className="p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>VIEW STUDENTS DEPARTMENT-WISE</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+          {isLoading ? (
+            <div className="flex justify-center items-center">
+              <Spinner className="w-10 h-10 animate-spin" />
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            currentDepartments.map((dept) => (
+              <div key={dept._id} className="mb-6">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  {dept.departmentName.toUpperCase()}
+                </h2>
+                {dept.students.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>NAME</TableHead>
+                        <TableHead>COURSE</TableHead>
+                        <TableHead>YEAR</TableHead>
+                        <TableHead>SESSION</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dept.students.map((student, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{student}</TableCell>
+                          <TableCell>{dept.courses[index]}</TableCell>
+                          <TableCell>{dept.year[index]}</TableCell>
+                          <TableCell>{dept.session[index]}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400 mt-2">
+                    No students found in this department.
+                  </p>
+                )}
+              </div>
+            ))
+          )}
+          <div className="flex justify-between items-center mt-4">
+            <Button
+              onClick={() => paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+            >
+              Previous
+            </Button>
+            <span className="text-gray-700 dark:text-gray-300">
+              Page {currentPage}
+            </span>
+            <Button
+              onClick={() => paginate(currentPage + 1)}
+              disabled={currentPage === Math.ceil(data.length / studentsPerPage)}
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+            >
+              Next
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

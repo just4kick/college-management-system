@@ -27,9 +27,11 @@ export default function DeleteFaculty() {
 
     setLoading(true); // Start loading spinner
     setError("");
-
+    let localRole = localStorage.getItem('user')
+  localRole = JSON.parse(localRole)
+  const role = localRole.role
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/delete-faculty',{
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/delete-faculty`,{
         method:'DELETE',
         headers: {
           'Content-Type': 'application/json',

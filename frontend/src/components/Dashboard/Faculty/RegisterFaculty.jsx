@@ -89,9 +89,11 @@ export default function RegisterFaculty() {
       const blob = dataURLToBlob(capturedImage);
       formDataToSend.append("cameraImage", blob, generateRandomFileName());
     }
-
+    let localRole = localStorage.getItem('user')
+  localRole = JSON.parse(localRole)
+  const role = localRole.role
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/register-faculty', {
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/register-faculty`, {
         method: 'POST',
         credentials: 'include',
         body: formDataToSend,

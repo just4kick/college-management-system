@@ -3,13 +3,8 @@ import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyHOD } from "../middlewares/verifyHOD.middleware.js";
 import {
-  viewDeptStudents,
   updateFacultyDetails,
   selfRegisterFaculty,
-  registerStudent,
-  deleteStudent,
-  searchStudent,
-  viewAllStudent,
 } from "../controllers/faculty.controller.js";
 
 import {
@@ -18,7 +13,13 @@ import {
   searchFaculty,
   viewAllFaculty,
 } from "../controllers/hod.controller.js";
-import { viewAllNotice } from "../controllers/admin.controller.js";
+import { viewAllNotice,
+  viewAllFacultyDeptWise,
+  registerStudent,
+  deleteStudent,
+  searchStudent,
+  viewAllStudentDeptWise
+ } from "../controllers/admin.controller.js";
 
 import {
   loginRequestOtp,
@@ -60,8 +61,8 @@ router.route("/reset-password").patch(resetPassword);
 
 router.use(verifyJWT);
 //each faculty can perform
-router.route("/view-students").get(verifyJWT, viewDeptStudents);
-router.route("/update-details").patch(verifyJWT, updateFacultyDetails);
+
+router.route("/update-faculty-details").patch(verifyJWT, updateFacultyDetails);
 router.route("/register-student").post(
   upload.fields([
     {
@@ -77,7 +78,7 @@ router.route("/register-student").post(
 );
 router.route("/delete-student").delete(deleteStudent);
 router.route("/search-student").get(searchStudent);
-router.route("/view-all-student").get(viewAllStudent);
+router.route("/view-student-deptWise").get(viewAllStudentDeptWise)
 // common controller routes
 router.route("/logout").post(logout);
 router.route("/login-verify").post(loginVerifyOtp);
@@ -107,6 +108,6 @@ router.route("/search-faculty").get(verifyHOD, searchFaculty);
 router.route("/add-notice-hod").post(verifyHOD, addNoticeByHOD);
 router.route("/remove-notice-hod").delete(verifyHOD, removeNoticeByHOD);
 router.route("/view-notice-hod").get(viewAllNotice);
-router.route("/view-all-faculty").get(viewAllFaculty);
+router.route("/view-faculty-deptWise").get(viewAllFacultyDeptWise)
 
 export default router;

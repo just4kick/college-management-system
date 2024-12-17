@@ -456,8 +456,12 @@ const viewAllFacultyDeptWise = asyncHandler(async (req, res) => {
             {
                 $group: {
                     _id: "$_id",                   
-                    departmentName: { $first: "$name" },  
-                    faculties: { $push: "$faculties.fullName" } 
+                    departmentName: { $first: "$name" },
+                    deptId:{$first:"$deptId"},  
+                    faculties: { $push: "$faculties.fullName" },
+                    email:{$push:"$faculties.email"},
+                    isHod:{$push:"$faculties.isHOD"} 
+                    
                 }
             },
             { 
@@ -568,7 +572,7 @@ const deleteStudent = asyncHandler(async(req,res)=>{
 });
 
 const searchStudent = asyncHandler(async(req,res)=>{
-    const {email} = req.body
+    const {email} = req.query
     if(!email){
         throw new ApiError(400,"Email is required")
     }
@@ -588,65 +592,59 @@ const searchStudent = asyncHandler(async(req,res)=>{
 })
 //ends here
 const viewAllStudentDeptWise = asyncHandler(async (req, res) => {
-    // TODO: Implement registerStudent
     try {
-        // const StudentdByDept = await Student.aggregate([
-        //     {
-        //         $lookup:{
-        //             from:"departments",
-        //             localField:"department",
-        //             foreignField:"_id",
-        //             as:"departmentDetails"
-        //         }
-        //     },
-        //     {$unwind:"$departmentDetails"},
-        //     {
-        //         $group:{
-        //             _id:"$departmentDetails.name",
-        //             studentt:{$push:"$fullName"}
-        //         }
-        //     },
-        //     {$sort:{_id:1}}
-        // ])
+        const userRole = req.user.role;
+        const userDeptId = req.user.department; 
+
+        let matchCondition = {};
+        if (userRole === 'faculty') {
+            matchCondition = { _id: new mongoose.Types.ObjectId(userDeptId) };
+        }
 
         const StudentByDept = await Department.aggregate([
             {
+                $match: matchCondition
+            },
+            {
                 $lookup: {
-                    from: "students",            
-                    localField: "_id",            
-                    foreignField: "department",   
-                    as: "studentDetails"               
+                    from: "students",
+                    localField: "_id",
+                    foreignField: "department",
+                    as: "studentDetails"
                 }
             },
             {
                 $unwind: {
-                    path: "$studentDetails", 
-                    preserveNullAndEmptyArrays: true 
+                    path: "$studentDetails",
+                    preserveNullAndEmptyArrays: true
                 }
             },
             {
                 $group: {
-                    _id: "$_id",                   
-                    departmentName: { $first: "$name" },  
-                    students: { $push: "$studentDetails.fullName" } 
+                    _id: "$_id",
+                    departmentName: { $first: "$name" },
+                    students: { $push: "$studentDetails.fullName" },
+                    courses:{$push:"$studentDetails.course"},
+                    year:{$push:"$studentDetails.year"},
+                    session:{$push:"$studentDetails.session"}
                 }
             },
-            { 
-                $sort: { departmentName: 1 } 
+            {
+                $sort: { departmentName: 1 }
             }
         ]);
 
-        if(!StudentByDept){
-            throw new ApiError(500,"Something went Wrong During Fetching Data")
+        if (!StudentByDept) {
+            throw new ApiError(500, "Something went wrong during fetching data");
         }
 
         return res
-                .status(200)
-                .json(
-                    new ApiResponse(200,StudentByDept,"Data Fetched Completed")
-                )
+            .status(200)
+            .json(
+                new ApiResponse(200, StudentByDept, "Data fetched successfully")
+            );
     } catch (error) {
-        throw new ApiError(400,error,"Something went Wrong During Fetching Data")
+        throw new ApiError(400, error.message, "Something went wrong during fetching data");
     }
 });
 

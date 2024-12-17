@@ -24,7 +24,7 @@ removeRegistrationKey,
 addNoticeByAdmin,
 removeNoticeByAdmin,
 viewAllNotice,
-updateDetails
+updateDetails,
 } from "../controllers/admin.controller.js"
 import {
     loginRequestOtp,
@@ -43,6 +43,7 @@ import {verifyAdmin} from "../middlewares/verifyAdmin.middleware.js"
 import {hodExists} from "../middlewares/oneHod.middleware.js"
 import {addImages,
     removeImage,} from "../controllers/gallery.controller.js"
+    import { updateFacultyDetails } from "../controllers/faculty.controller.js";
 const router = Router()
 
 
@@ -87,6 +88,7 @@ router.route("/register-faculty").post(
     registerFaculty)
 router.route("/delete-faculty").delete(deleteFaculty)
 router.route("/search-faculty").get(searchFaculty)
+router.route("/update-faculty-details").patch(updateFacultyDetails)
 router.route("/view-faculty-deptWise").get(viewAllFacultyDeptWise)
 router.route("/register-student").post(
     upload.fields([

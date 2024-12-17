@@ -26,9 +26,11 @@ export default function SearchFaculty() {
 
     setError("");
     setLoading(true);
-
+    let localRole = localStorage.getItem('user')
+  localRole = JSON.parse(localRole)
+  const role = localRole.role
     try {
-      const response = await fetch(`http://localhost:8000/api/v1/admin/search-faculty?email=${encodeURIComponent(email)}`, {
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/search-faculty?email=${encodeURIComponent(email)}`, {
         method: 'GET',
         credentials: 'include',
       });

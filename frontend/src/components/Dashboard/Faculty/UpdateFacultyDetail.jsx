@@ -1,17 +1,16 @@
 import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner"; // Import Spinner if you have it
+import { Spinner } from "@/components/ui/spinner";
 
 export default function UpdateFacultyDetails() {
   const [formData, setFormData] = useState({
-    fullName: "",
     email: "",
+    fullName: "",
+    newEmail: "",
     phoneNumber: "",
-    department: "",
-    avatar: null,
+    deptId: "",
   });
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false); // Loading state for the spinner
@@ -21,47 +20,41 @@ export default function UpdateFacultyDetails() {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Handle avatar upload
-  const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarPreview(reader.result); // Display image preview
-        setFormData((prev) => ({ ...prev, avatar: reader.result })); // Save as base64
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  let localRole = localStorage.getItem('user')
+  localRole = JSON.parse(localRole)
+  const role = localRole.role
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const { fullName, email, phoneNumber, department, avatar } = formData;
-
-    if (!fullName || !email || !phoneNumber || !department) {
-      setError("All fields are required.");
-      setSuccess("");
-      return;
-    }
-
-    setLoading(true); // Start spinner
-    setError("");
+    setLoading(true); // Start loading
 
     try {
-      // Simulate submission (replace with actual API call)
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulated delay
-      console.log("Faculty Data Updated:", formData);
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/update-faculty-details`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
 
-      setSuccess("Faculty details updated successfully.");
-      setAvatarPreview(null);
+      const result = await response.json();
+      console.log(result)
+      if (!response.ok) throw new Error(result.message);
+
+      setSuccess("Faculty details updated successfully!");
+      setFormData({
+        email: "",
+        fullName: "",
+        newEmail: "",
+        phoneNumber: "",
+        deptId: "",
+      });
     } catch (err) {
       console.error("Error updating faculty details:", err);
-      setError("An error occurred while updating the details.");
+      setError("An error occurred while updating the faculty details.");
     } finally {
-      setLoading(false); // Stop spinner
+      setLoading(false); // Stop loading
     }
   };
 
@@ -74,7 +67,30 @@ export default function UpdateFacultyDetails() {
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Full Name */}
+          {/* Email Field for Finding Faculty */}
+          <div className="w-full">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Faculty Email
+            </label>
+            <Input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Enter faculty email to find"
+              required
+            />
+          </div>
+
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Update Fields
+          </h2>
+
+          {/* Full Name Field */}
           <div className="w-full">
             <label
               htmlFor="fullName"
@@ -89,30 +105,28 @@ export default function UpdateFacultyDetails() {
               value={formData.fullName}
               onChange={handleChange}
               placeholder="Enter full name"
-              required
             />
           </div>
 
-          {/* Email */}
+          {/* New Email Field */}
           <div className="w-full">
             <label
-              htmlFor="email"
+              htmlFor="newEmail"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Email
+              New Email
             </label>
             <Input
               type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              id="newEmail"
+              name="newEmail"
+              value={formData.newEmail}
               onChange={handleChange}
-              placeholder="Enter email"
-              required
+              placeholder="Enter new email"
             />
           </div>
 
-          {/* Phone Number */}
+          {/* Phone Number Field */}
           <div className="w-full">
             <label
               htmlFor="phoneNumber"
@@ -127,53 +141,25 @@ export default function UpdateFacultyDetails() {
               value={formData.phoneNumber}
               onChange={handleChange}
               placeholder="Enter phone number"
-              required
             />
           </div>
 
-          {/* Department */}
+          {/* Department ID Field */}
           <div className="w-full">
             <label
-              htmlFor="department"
+              htmlFor="deptId"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Department
+              Department ID
             </label>
             <Input
               type="text"
-              id="department"
-              name="department"
-              value={formData.department}
+              id="deptId"
+              name="deptId"
+              value={formData.deptId}
               onChange={handleChange}
-              placeholder="Enter department name"
-              required
+              placeholder="Enter department ID"
             />
-          </div>
-
-          {/* Avatar Upload */}
-          <div className="w-full">
-            <label
-              htmlFor="avatar"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Update Avatar
-            </label>
-            <Input
-              type="file"
-              id="avatar"
-              name="avatar"
-              accept="image/*"
-              onChange={handleAvatarUpload}
-            />
-            {avatarPreview && (
-              <div className="mt-4">
-                <img
-                  src={avatarPreview}
-                  alt="Avatar Preview"
-                  className="w-24 h-24 rounded-full border mt-2"
-                />
-              </div>
-            )}
           </div>
 
           {/* Submit Button */}
