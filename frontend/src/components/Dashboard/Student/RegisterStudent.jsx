@@ -60,9 +60,11 @@ export default function RegisterStudent() {
         formDataToSend.append(key, formData[key]);
       }
     });
-
+    let localRole = localStorage.getItem('user')
+  localRole = JSON.parse(localRole)
+  const role = localRole.role
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/register-student', {
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/register-student`, {
         method: 'POST',
         credentials: 'include',
         body: formDataToSend,

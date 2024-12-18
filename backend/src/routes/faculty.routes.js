@@ -18,7 +18,8 @@ import { viewAllNotice,
   registerStudent,
   deleteStudent,
   searchStudent,
-  viewAllStudentDeptWise
+  viewAllStudentDeptWise,
+  updateDetails
  } from "../controllers/admin.controller.js";
 
 import {
@@ -61,7 +62,7 @@ router.route("/reset-password").patch(resetPassword);
 
 router.use(verifyJWT);
 //each faculty can perform
-
+router.route("/update-details").patch(upload.single("avatar"),verifyJWT,updateDetails)
 router.route("/update-faculty-details").patch(verifyJWT, updateFacultyDetails);
 router.route("/register-student").post(
   upload.fields([

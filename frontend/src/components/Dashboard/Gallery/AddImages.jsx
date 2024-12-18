@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/spinner";
 const AddImages = () => {
   const [imageFor, setImageFor] = useState('');
   const [images, setImages] = useState([]);
+  const [isGlobal, setIsGlobal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleImageChange = (e) => {
@@ -20,6 +21,7 @@ const AddImages = () => {
 
     const formData = new FormData();
     formData.append('imageFor', imageFor);
+    formData.append('isGlobal', isGlobal);
     for (let i = 0; i < images.length; i++) {
       formData.append('images', images[i]);
     }
@@ -34,49 +36,74 @@ const AddImages = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message);
 
-      alert('Images uploaded successfully!');
+      // Handle success
       setImageFor('');
       setImages([]);
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert(error.message);
-    } finally {
+      setIsGlobal(false);
       setIsLoading(false);
+      alert('Images added successfully!');
+    } catch (error) {
+      // Handle error
+      setIsLoading(false);
+      alert('Error adding images: ' + error.message);
     }
   };
 
   return (
-    <Card className="w-[600px] max-w-full mx-auto mt-8">
-      <CardHeader>
-        <CardTitle>Add Images to Gallery</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="imageFor">Image For</Label>
-            <Input
-              id="imageFor"
-              value={imageFor}
-              onChange={(e) => setImageFor(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="images">Images</Label>
-            <Input
-              id="images"
-              type="file"
-              multiple
-              onChange={handleImageChange}
-              required
-            />
-          </div>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? <Spinner /> : 'Upload Images'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="min-h-screen flex items-start justify-center bg-gray-50 dark:bg-gray-900 pt-10">
+      <Card className="w-full max-w-lg bg-white dark:bg-gray-800 p-6 shadow-md rounded-md border border-gray-300 dark:border-gray-700">
+        <CardHeader>
+          <CardTitle>ADD IMAGES</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label htmlFor="imageFor" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Image For
+              </Label>
+              <Input
+                type="text"
+                id="imageFor"
+                name="imageFor"
+                value={imageFor}
+                onChange={(e) => setImageFor(e.target.value)}
+                placeholder="Enter department or global"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="images" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Upload Images
+              </Label>
+              <Input
+                type="file"
+                id="images"
+                name="images"
+                multiple
+                onChange={handleImageChange}
+                required
+              />
+            </div>
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isGlobal"
+                name="isGlobal"
+                checked={isGlobal}
+                onChange={(e) => setIsGlobal(e.target.checked)}
+                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <Label htmlFor="isGlobal" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                Global Image
+              </Label>
+            </div>
+            <Button type="submit" className="w-full mt-6 flex items-center justify-center" disabled={isLoading}>
+              {isLoading ? <Spinner className="w-5 h-5 animate-spin" /> : "Add Images"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

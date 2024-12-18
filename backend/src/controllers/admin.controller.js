@@ -18,7 +18,11 @@ import axios from "axios"
 import FormData from 'form-data';
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-
+const roleModelMap = {
+    admin: Admin,
+    student: Student,
+    faculty: Faculty,
+};
 
 const createAdmin = asyncHandler(async (req, res) => {
     // TODO: Implement createAdmin
@@ -413,73 +417,85 @@ const searchFaculty = asyncHandler(async(req,res)=>{
 });
 //ends here
 const viewAllFacultyDeptWise = asyncHandler(async (req, res) => {
-    // TODO: Implement registerStudent
     try {
-        // const facultiesByDept = await Faculty.aggregate([
-        //     {
-        //         $lookup:{
-        //             from:"departments",
-        //             localField:"department",
-        //             foreignField:"_id",
-        //             as:"departmentDetails"
-        //         }
-        //     },
-        //     { $unwind: {
-        //         path: "$departmentDetails", 
-        //         preserveNullAndEmptyArrays: true  
-        //     }
-        //     },
-        //     {
-        //         $group: {
-        //     _id: "$departmentDetails._id",   
-        //     departmentName: { $first: "$departmentDetails.name" },  
-        //     faculties: { $push: "$fullName" } 
-        // }
-        //     },
-        //     {$sort:{_id:1}}
-        // ])
-        const facultiesByDept = await Department.aggregate([
-            {
-                $lookup: {
-                    from: "faculties",            
-                    localField: "_id",            
-                    foreignField: "department",   
-                    as: "faculties"               
+        let facultiesByDept;
+
+        if (req.user.role === "admin") {
+            // Admin: Fetch all faculties of all departments
+            facultiesByDept = await Department.aggregate([
+                {
+                    $lookup: {
+                        from: "faculties",
+                        localField: "_id",
+                        foreignField: "department",
+                        as: "faculties"
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$faculties",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$_id",
+                        departmentName: { $first: "$name" },
+                        deptId: { $first: "$deptId" },
+                        faculties: { $push: "$faculties.fullName" },
+                        email: { $push: "$faculties.email" },
+                        isHod: { $push: "$faculties.isHOD" }
+                    }
+                },
+                {
+                    $sort: { departmentName: 1 }
                 }
-            },
-            {
-                $unwind: {
-                    path: "$faculties", 
-                    preserveNullAndEmptyArrays: true 
+            ]);
+        } else if (req.user.role === "faculty") {
+            // Faculty: Fetch faculties of only their department
+            facultiesByDept = await Department.aggregate([
+                {
+                    $match: { _id: req.user.department }
+                },
+                {
+                    $lookup: {
+                        from: "faculties",
+                        localField: "_id",
+                        foreignField: "department",
+                        as: "faculties"
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$faculties",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$_id",
+                        departmentName: { $first: "$name" },
+                        deptId: { $first: "$deptId" },
+                        faculties: { $push: "$faculties.fullName" },
+                        email: { $push: "$faculties.email" },
+                        isHod: { $push: "$faculties.isHOD" }
+                    }
+                },
+                {
+                    $sort: { departmentName: 1 }
                 }
-            },
-            {
-                $group: {
-                    _id: "$_id",                   
-                    departmentName: { $first: "$name" },
-                    deptId:{$first:"$deptId"},  
-                    faculties: { $push: "$faculties.fullName" },
-                    email:{$push:"$faculties.email"},
-                    isHod:{$push:"$faculties.isHOD"} 
-                    
-                }
-            },
-            { 
-                $sort: { departmentName: 1 }  // Sort by department name
-            }
-        ]);
-        
-        if(!facultiesByDept){
-            throw new ApiError(500,"Something went Wrong During Fetching Data")
+            ]);
+        } else {
+            throw new ApiError(403, "Unauthorized access");
         }
 
-        return res
-                .status(200)
-                .json(
-                    new ApiResponse(200,facultiesByDept,"Data Fetched Completed")
-                )
+        if (!facultiesByDept) {
+            throw new ApiError(500, "Something went wrong during fetching data");
+        }
+
+        return res.status(200).json(new ApiResponse(200, facultiesByDept, "Data fetched successfully"));
     } catch (error) {
-        throw new ApiError(400,error,"Something went Wrong During Fetching Data")
+        throw new ApiError(400, error, "Something went wrong during fetching data");
     }
 });
 //can be called by hod and faculty as well
@@ -981,10 +997,10 @@ const updateDetails = asyncHandler(async (req, res) => {
     if (!token) {
         throw new ApiError(401, "Access token is required");
     }
-
+    let decoded
     let userId;
     try {
-        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
         console.log(decoded)
         userId = decoded._id;
     } catch (error) {
@@ -1004,8 +1020,10 @@ const updateDetails = asyncHandler(async (req, res) => {
         }
         updateData.avatar = avatar.url;
     }
-
-    const updatedUser = await Admin.findByIdAndUpdate(userId, updateData, { new: true }).select("-password -refreshToken");
+    let role = decoded.role
+    console.log(role)
+    const userRole = roleModelMap[role]
+    const updatedUser = await userRole.findByIdAndUpdate(userId, updateData, { new: true }).select("-password -refreshToken");
 
     if (!updatedUser) {
         throw new ApiError(404, "User not found");

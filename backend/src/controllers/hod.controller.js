@@ -71,11 +71,10 @@ const viewAllNotice = asyncHandler(async (req,res)=>{
     // const globalNotices = await Notice.find({ isGlobal: true }).populate('createdBy _id name');
     try {
         allNotices = await Notice.find({
-            $or: [
-                { isGlobal: true }, // Global notices visible to all
-                { department: req.user.departmentId }, // Notices specific to the user's department
-            ],
-        }).populate('createdBy', '_id name');
+            department: req.user.department,
+        })
+            .populate('createdBy', '_id fullName')
+            .sort({ createdAt: -1 });
     } catch (error) {
         throw new ApiError(500,error,"Something went wrong.")
     }
@@ -159,7 +158,7 @@ const deleteFaculty = asyncHandler(async(req,res)=>{
 });
 
 const searchFaculty = asyncHandler(async(req,res)=>{
-    const {email} = req.body
+    const {email} = req.query
     if(!email){
         throw new ApiError(400,"Email is required")
     }

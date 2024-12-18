@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from "cookie-parser"
 import { checkAuth,verifyEmail } from './controllers/common.controller.js'
+import { viewAllNotice } from './controllers/admin.controller.js'
 const app = express()
 
 app.use(cors({
@@ -28,6 +29,6 @@ app.use("/api/v1/gallery",galleryRouter)
 
 app.get("/api/v1/check-auth",checkAuth)
 app.get("/verify-email", verifyEmail)
-
+app.get("/global-notice",viewAllNotice)
 
 export {app}

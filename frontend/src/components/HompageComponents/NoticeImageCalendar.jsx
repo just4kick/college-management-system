@@ -1,24 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { Spinner } from "@/components/ui/spinner";
 export function NoticeImageCalendar() {
   const [date, setDate] = useState(new Date());
+  const [notices, setNotices] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const notices = [
-    "Semester exams begin from Dec 20",
-    "Annual sports meet on Jan 5",
-    "Holiday notice for Dec 25",
-    "Workshop on AI on Jan 10",
-    "Guest lecture on Dec 18",
-    "Blood donation camp on Jan 15",
-    "Cultural fest registrations open",
-    "Library renovation updates",
-    "Free online courses available",
-    "Tech fest volunteer meet",
-  ];
+  useEffect(() => {
+    const fetchNotices = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("http://localhost:8000/global-notice", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+        console.log(result.data)
+        const globalNotices = result.data.filter(notice=>notice.isGlobal)
+        console.log(globalNotices)
+        setNotices(globalNotices);
+      } catch (err) {
+        console.error("Error fetching notices:", err);
+        setMessage("An error occurred while fetching the notices.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotices();
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -68,17 +87,26 @@ export function NoticeImageCalendar() {
               </CardTitle>
             </CardHeader>
             <CardContent className="overflow-y-auto max-h-72 pt-4">
+            {isLoading ? (
+              <div className="flex justify-center items-center">
+                <Spinner className="w-10 h-10 animate-spin" />
+              </div>
+            ) : (
               <ul className="space-y-2">
-                {notices.map((notice, index) => (
+                {notices.map((notice) => (
                   <li
-                    key={index}
+                    key={notice._id}
                     className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600"
                   >
-                    {notice}
+                    <a href={notice.content} target="_blank" rel="noopener noreferrer" className="text-gray-900 dark:text-gray-100 hover:text-blue-500">
+                      {notice.title}
+                    </a>
                   </li>
                 ))}
               </ul>
-            </CardContent>
+            )}
+            {message && <p className="mt-4 text-red-500 dark:text-red-400">{message}</p>}
+          </CardContent>
           </Card>
         </div>
       </div>

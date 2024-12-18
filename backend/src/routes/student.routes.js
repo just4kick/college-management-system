@@ -16,6 +16,7 @@ import {
     userDetails,
     updateFaceData
 } from "../controllers/common.controller.js"
+import { viewAllNotice } from "../controllers/admin.controller.js";
 const router = Router()
 router.route("/self-register-student").post(
     upload.fields([
@@ -43,5 +44,5 @@ router.route("/request-forgot-pass").post(requestForgotPassword),
 router.route("/reset-password").patch(resetPassword)
 router.route("/user-detail").get(verifyJWT,userDetails)
 router.route("/update-face").patch(upload.single("cameraImage"),verifyJWT,updateFaceData)
-
+router.route("/view-notice-hod").get(viewAllNotice);
 export default router

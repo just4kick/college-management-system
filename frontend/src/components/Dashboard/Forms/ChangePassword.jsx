@@ -11,6 +11,9 @@ export default function ChangePassword() {
     newPassword: '',
     confirmNewPassword: '',
   });
+  let localRole = localStorage.getItem('user')
+  localRole = JSON.parse(localRole)
+  const role = localRole.role
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +46,7 @@ export default function ChangePassword() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/v1/admin/change-password', {
+      const response = await fetch(`http://localhost:8000/api/v1/${role}/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

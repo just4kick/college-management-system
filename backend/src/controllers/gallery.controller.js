@@ -5,7 +5,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Gallery } from "../models/gallery.models.js";
 const addImages = asyncHandler(async (req, res) => {
     try {
-        const { imageFor } = req.body;
+        const { imageFor,isGlobal } = req.body;
 
         if (!imageFor) {
             throw new ApiError(400, "The 'imageFor' field is required.");
@@ -24,6 +24,7 @@ const addImages = asyncHandler(async (req, res) => {
                 images.push({
                     imageFor,
                     imageURL: uploadedImage.url,
+                    isGlobal
                 });
             }
         }
@@ -66,7 +67,7 @@ const removeImage = asyncHandler(async (req, res) => {
 
     const viewGlobalImage = asyncHandler(async (req, res) => {
         try {
-            const globalImages = await Gallery.find({ imageFor: "global" });
+            const globalImages = await Gallery.find({ isGlobal:true });
     
             if (!globalImages || globalImages.length === 0) {
                 throw new ApiError(404, "No global images found.");
@@ -83,15 +84,13 @@ const removeImage = asyncHandler(async (req, res) => {
 
 
     const viewDeptImage = asyncHandler(async (req, res) => {
-        const { deptId } = req.params;
+        
     
         try {
-            if (!deptId) {
-                throw new ApiError(400, "Department ID is required.");
-            }
+            
     
             // Fetch images for the given department ID
-            const deptImages = await Gallery.find({ imageFor: deptId });
+            const deptImages = await Gallery.find({ isGlobal:false });
     
             if (!deptImages || deptImages.length === 0) {
                 throw new ApiError(404, "No images found for this department.");

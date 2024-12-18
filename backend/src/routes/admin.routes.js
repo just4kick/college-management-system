@@ -110,6 +110,7 @@ router.route("/revoke-keys").patch(revokeRegistrationKey)
 router.route("/grant-keys").patch(grantRegistrationKey)
 router.route("/add-keys").patch(addRegistrationKey)
 router.route("/remove-keys").patch(removeRegistrationKey)
+//notice routes
 router.route("/add-notice").post(addNoticeByAdmin)
 router.route("/remove-notice").delete(removeNoticeByAdmin)
 router.route("/view-notice").get(viewAllNotice)

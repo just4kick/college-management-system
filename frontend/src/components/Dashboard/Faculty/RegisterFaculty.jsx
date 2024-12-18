@@ -1,270 +1,181 @@
-import React, { useState, useRef, useCallback } from "react";
-import { Input } from "@/components/ui/input";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import Webcam from "react-webcam";
 
-export default function RegisterFaculty() {
+const RegisterFaculty = () => {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     phoneNumber: "",
-    avatar: null,
-    capturedImage: null,
     password: "",
     deptId: "",
+    avatar: null,
   });
-  const [avatarPreview, setAvatarPreview] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [useWebcam, setUseWebcam] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const webcamRef = useRef(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, [e.target.name]: file });
-      if (e.target.name === "avatar") {
-        setAvatarPreview(URL.createObjectURL(file));
-      } else if (e.target.name === "capturedImage") {
-        setImagePreview(URL.createObjectURL(file));
-      }
+    const { name, value, files } = e.target;
+    if (name === "avatar") {
+      setFormData({ ...formData, avatar: files[0] });
+    } else {
+      setFormData({ ...formData, [name]: value });
     }
   };
-
-  const generateRandomFileName = () => {
-    return `capturedImage${Math.floor(Math.random() * 10000)}.jpg`;
-  };
-
-  const dataURLToBlob = (dataURL) => {
-    const arr = dataURL.split(',');
-    const mime = arr[0].match(/:(.*?);/)[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], { type: mime });
-  };
-
-  const captureImage = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      setFormData({ ...formData, capturedImage: imageSrc });
-      setImagePreview(imageSrc);
-    }
-  }, [webcamRef]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const { fullName, email, phoneNumber, avatar, password, deptId, capturedImage } = formData;
-
-    if (!fullName || !email || !phoneNumber || !password || !deptId) {
-      setError("All fields except avatar and captured image are required.");
-      setSuccess("");
-      return;
-    }
-
-    setLoading(true); // Start spinner
-    setError("");
+    setLoading(true);
 
     const formDataToSend = new FormData();
-    formDataToSend.append("fullName", fullName);
-    formDataToSend.append("email", email);
-    formDataToSend.append("phoneNumber", phoneNumber);
-    formDataToSend.append("password", password);
-    formDataToSend.append("deptId", deptId);
-    if (avatar) {
-      formDataToSend.append("avatar", avatar);
+    formDataToSend.append("fullName", formData.fullName);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("phoneNumber", formData.phoneNumber);
+    formDataToSend.append("password", formData.password);
+    if (formData.deptId) {
+      formDataToSend.append("deptId", formData.deptId);
+    }
+    if (formData.avatar) {
+      formDataToSend.append("avatar", formData.avatar);
     }
     if (capturedImage) {
-      const blob = dataURLToBlob(capturedImage);
-      formDataToSend.append("cameraImage", blob, generateRandomFileName());
+      formDataToSend.append("cameraImage", capturedImage);
     }
     let localRole = localStorage.getItem('user')
-  localRole = JSON.parse(localRole)
-  const role = localRole.role
+    localRole = JSON.parse(localRole)
+    const role = localRole.role
     try {
       const response = await fetch(`http://localhost:8000/api/v1/${role}/register-faculty`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
         body: formDataToSend,
+        credentials: "include",
       });
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
 
-      setSuccess("Faculty registered successfully.");
+      setSuccess("Faculty registered successfully!");
       setFormData({
         fullName: "",
         email: "",
         phoneNumber: "",
-        avatar: null,
-        capturedImage: null,
         password: "",
         deptId: "",
+        avatar: null,
       });
-      setAvatarPreview(null);
-      setImagePreview(null);
-      setUseWebcam(false);
-    } catch (err) {
-      console.error("Error registering faculty:", err);
+      setCapturedImage(null);
+    } catch (error) {
       setError("An error occurred while registering the faculty.");
     } finally {
-      setLoading(false); // Stop spinner
+      setLoading(false);
     }
+  };
+
+  const startCamera = () => {
+    setCameraActive(true);
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      })
+      .catch((err) => {
+        console.error("Error accessing camera: ", err);
+        setError("Error accessing camera.");
+      });
+  };
+
+  const stopCamera = () => {
+    setCameraActive(false);
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+    }
+  };
+
+  const captureImage = () => {
+    const context = canvasRef.current.getContext("2d");
+    context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+    canvasRef.current.toBlob((blob) => {
+      setCapturedImage(blob);
+    });
+    stopCamera();
   };
 
   return (
     <div className="min-h-screen flex items-start justify-center bg-gray-50 dark:bg-gray-900 pt-10">
       <div className="w-full max-w-4xl bg-white dark:bg-gray-800 p-6 shadow-md rounded-md">
-        <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-          Register Faculty
-        </h1>
+        <h1 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Register Faculty</h1>
         {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
         {success && <div className="text-green-500 text-sm mb-4">{success}</div>}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Full Name
-              </label>
-              <Input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+              <Input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Email
-              </label>
-              <Input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+              <Input type="email" name="email" value={formData.email} onChange={handleChange} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Phone Number
-              </label>
-              <Input
-                type="text"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Phone Number</label>
+              <Input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password
-              </label>
-              <Input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+              <Input type="password" name="password" value={formData.password} onChange={handleChange} required />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Department ID
-              </label>
-              <Input
-                type="text"
-                name="deptId"
-                value={formData.deptId}
-                onChange={handleChange}
-                required
-              />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Department ID (Optional)</label>
+              <Input type="text" name="deptId" value={formData.deptId} onChange={handleChange} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Avatar (Optional)
-              </label>
-              <Input
-                type="file"
-                name="avatar"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Captured Image (Optional)
-              </label>
-              <div className="flex items-center space-x-4">
-                <Button
-                  type="button"
-                  variant={useWebcam ? 'default' : 'outline'}
-                  onClick={() => setUseWebcam(!useWebcam)}
-                >
-                  {useWebcam ? 'Use Upload' : 'Use Webcam'}
-                </Button>
-              </div>
-              {useWebcam ? (
-                <>
-                  <Webcam
-                    ref={webcamRef}
-                    audio={false}
-                    screenshotFormat="image/jpeg"
-                    className="w-full h-48 object-cover mt-2"
-                  />
-                  <Button
-                    type="button"
-                    className="w-full mt-2"
-                    onClick={captureImage}
-                  >
-                    Capture Image
-                  </Button>
-                </>
-              ) : (
-                <Input
-                  type="file"
-                  name="capturedImage"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              )}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Upload Avatar</label>
+              <Input type="file" name="avatar" onChange={handleChange} />
             </div>
           </div>
-          <div className="mt-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              Image Previews
-            </h2>
-            <div className="flex space-x-4">
-              {avatarPreview && (
-                <img src={avatarPreview} alt="Avatar Preview" className="w-32 h-32 rounded-md" />
-              )}
-              {imagePreview && (
-                <img src={imagePreview} alt="Captured Preview" className="w-32 h-32 rounded-md" />
-              )}
-            </div>
+          <div className="flex items-center space-x-4">
+            <Button type="button" onClick={startCamera} disabled={cameraActive}>
+              Start Camera
+            </Button>
+            <Button type="button" onClick={captureImage} disabled={!cameraActive}>
+              Capture Image
+            </Button>
+            <Button type="button" onClick={stopCamera} disabled={!cameraActive}>
+              Stop Camera
+            </Button>
           </div>
-          <Button
-            type="submit"
-            className="w-full mt-6 flex items-center justify-center"
-            disabled={loading}
-          >
+          {cameraActive && (
+            <div className="mt-4">
+              <video ref={videoRef} className="w-64 h-auto" />
+              <canvas ref={canvasRef} className="hidden" width="640" height="480" />
+            </div>
+          )}
+          {capturedImage && (
+            <div className="mt-4">
+              <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">Captured Image Preview:</h2>
+              <img src={URL.createObjectURL(capturedImage)} alt="Captured" className="w-32 h-32 object-cover rounded-md" />
+            </div>
+          )}
+          {formData.avatar && (
+            <div className="mt-4">
+              <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300">Avatar Preview:</h2>
+              <img src={URL.createObjectURL(formData.avatar)} alt="Avatar" className="w-32 h-32 object-cover rounded-md" />
+            </div>
+          )}
+          <Button type="submit" className="w-full mt-6 flex items-center justify-center" disabled={loading}>
             {loading ? <Spinner className="w-5 h-5 animate-spin" /> : "Register Faculty"}
           </Button>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default RegisterFaculty;

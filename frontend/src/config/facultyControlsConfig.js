@@ -44,7 +44,7 @@ const FacultyControlConfig = {
       label: "Notice Management",
       icon: Bell,
       items: [
-        { label: "Add Notice", component: AddNotice },
+        
         { label: "View Notices", component: ViewNotices },
       ],
     },
@@ -56,6 +56,7 @@ const FacultyControlConfig = {
         { label: "Delete Faculty", component: DeleteFaculty },
         { label: "Search Faculty", component: SearchFaculty },
         { label: "View Faculty (Dept-wise)", component: ViewFacultyDeptWise },
+        { label: "Add Notice", component: AddNotice },
       ],
     },
   ],
