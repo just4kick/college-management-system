@@ -23,6 +23,8 @@ sudo docker compose down
 
 How cool is that? With just one command, you can start and stop the entire stack—frontend, backend, and face-recognition services—all in a snap! It's that easy and efficient!
 
+* The .env file in this repository does not contain any sensitive information for me, but it's not recommended to push it to the repository.
+
 #
 
 
