@@ -1,33 +1,28 @@
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 import crypto from "crypto";
-import {ApiResponse} from "../utils/ApiResponse.js"
-import { asyncHandler } from "../utils/asyncHandler.js"
-import {ApiError} from "../utils/ApiError.js"
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { ApiError } from "../utils/ApiError.js";
 // import Admin from "../models/admin.model.js";
 // import Faculty from "../models/admin.faculty.js";
 // import HOD from "../models/admin.hod.js";
 // import Student from "../models/admin.student.js";
 
-
-
-
-
-
 //email transporter setup
 
 const transporter = nodemailer.createTransport({
-    service:"gmail",
-    auth:{
-        user:"juciepiladomausambika@gmail.com",
-        pass:process.env.OTP_KEY_PASS
-    },
+  service: "gmail",
+  auth: {
+    user: "juciepiladomausambika@gmail.com",
+    pass: process.env.OTP_KEY_PASS,
+  },
 });
 
 let otpStore = {};
 
 // Generate OTP
 
-const generateOtp = async function (email){
+const generateOtp = async function (email) {
   /*
   accept the email from the body
   check if the email is empty or not
@@ -38,30 +33,26 @@ const generateOtp = async function (email){
   send a succefull message as a response
   */
 
-  if(!email){
-    throw new ApiError(400,"Email is required")
+  if (!email) {
+    throw new ApiError(400, "Email is required");
   }
   const otp = crypto.randomInt(100000, 999999).toString();
 
- 
   const expiry = Date.now() + 5 * 60 * 1000;
 
-  otpStore[email]={otp,expiry}
+  otpStore[email] = { otp, expiry };
 
   //sending the otp to the mail
   await transporter.sendMail({
-    from:"OTP provide",
+    from: "OTP provide",
     to: email,
-    subject:"Your OTP code",
-    text:`Your otp is ${otp}. I will expire in 5 min`
+    subject: "Your OTP code",
+    text: `Your otp is ${otp}. I will expire in 5 min`,
   });
-  return true
+  return true;
+};
 
-}
-
-const verifyOtp = async function(email,otp){
-  
-
+const verifyOtp = async function (email, otp) {
   if (!email || !otp) {
     return { message: "Email and OTP are required", output: false };
   }
@@ -69,7 +60,10 @@ const verifyOtp = async function(email,otp){
   const otpData = otpStore[email];
 
   if (!otpData) {
-    return { message: "No OTP data found for this email. Try again.", output: false };
+    return {
+      message: "No OTP data found for this email. Try again.",
+      output: false,
+    };
   }
 
   if (otpData.otp !== otp) {
@@ -82,10 +76,6 @@ const verifyOtp = async function(email,otp){
 
   delete otpStore[email];
   return { message: "OTP verified successfully", output: true };
+};
 
-}
-
-export{
-  generateOtp,
-  verifyOtp
-}
+export { generateOtp, verifyOtp };

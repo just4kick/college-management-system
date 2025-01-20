@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "dock": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start-python": ".\\src\\python-model\\venv\\Scripts\\Activate; python src/python-model/face_verification.py",
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+    "dev": "nodemon -r dotenv/config --experimental-json-modules server.js"
   },
   "author": "cdAkash",
   "license": "ISC",
@@ -24,6 +25,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "ip": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.1",
     "mongoose-aggregate-paginate-v2": "^1.1.2",
